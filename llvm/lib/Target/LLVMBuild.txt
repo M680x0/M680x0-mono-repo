@@ -35,6 +35,7 @@ subdirectories =
  SystemZ
  VE
  WebAssembly
+ M680x0
  X86
  XCore
 

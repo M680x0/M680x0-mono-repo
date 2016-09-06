@@ -71,6 +71,7 @@ StringRef Triple::getArchTypeName(ArchType Kind) {
   case ve:             return "ve";
   case wasm32:         return "wasm32";
   case wasm64:         return "wasm64";
+  case m680x0:         return "m680x0";
   case x86:            return "i386";
   case x86_64:         return "x86_64";
   case xcore:          return "xcore";
@@ -118,7 +119,7 @@ StringRef Triple::getArchTypePrefix(ArchType Kind) {
   case sparcel:
   case sparc:       return "sparc";
 
-  case systemz:     return "s390";
+  case m680x0:      return "m680x0";
 
   case x86:
   case x86_64:      return "x86";
@@ -299,6 +300,7 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("tcele", tcele)
     .Case("thumb", thumb)
     .Case("thumbeb", thumbeb)
+    .Case("m680x0", m680x0)
     .Case("x86", x86)
     .Case("x86-64", x86_64)
     .Case("xcore", xcore)
@@ -390,6 +392,9 @@ static Triple::ArchType parseARMArch(StringRef ArchName) {
 
 static Triple::ArchType parseArch(StringRef ArchName) {
   auto AT = StringSwitch<Triple::ArchType>(ArchName)
+    .Cases("m680x0", "m68k", Triple::m680x0)
+    .Cases("m68000", "m68010", "m68020", Triple::m680x0)
+    .Cases("m68030", "m68040", "m68060", Triple::m680x0)
     .Cases("i386", "i486", "i586", "i686", Triple::x86)
     // FIXME: Do we need to support these?
     .Cases("i786", "i886", "i986", Triple::x86)
@@ -662,6 +667,7 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::aarch64_32:
   case Triple::arm:
   case Triple::thumb:
+  case Triple::m680x0:  // FIXME should be COFF?
   case Triple::x86:
   case Triple::x86_64:
     if (T.isOSDarwin())
@@ -1262,7 +1268,11 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::tcele:
   case llvm::Triple::thumb:
   case llvm::Triple::thumbeb:
+<<<<<<< HEAD
   case llvm::Triple::wasm32:
+=======
+  case llvm::Triple::m680x0:
+>>>>>>> de1c0223b4e2... [M680x0] Initial commit
   case llvm::Triple::x86:
   case llvm::Triple::xcore:
     return 32;
@@ -1312,7 +1322,11 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::amdgcn:
   case Triple::avr:
   case Triple::bpfeb:
+<<<<<<< HEAD
   case Triple::bpfel:
+=======
+  case Triple::m680x0:
+>>>>>>> de1c0223b4e2... [M680x0] Initial commit
   case Triple::msp430:
   case Triple::ppc64le:
   case Triple::systemz:
