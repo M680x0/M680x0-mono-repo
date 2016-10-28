@@ -26,13 +26,6 @@ class MCInst;
 // Machine Operand Flags and Description
 //===----------------------------------------------------------------------===//
 
-class MIOperandInfo {
-  public:
-    int8_t MINo;
-    int8_t Type;
-    int8_t OpsNum;
-};
-
 namespace MCOI {
 // Operand constraints
 enum OperandConstraint {
@@ -73,8 +66,17 @@ enum OperandType {
 
   OPERAND_FIRST_TARGET = 13,
 };
-
 }
+
+class MIOperandInfo {
+  public:
+    int8_t MINo;
+    int8_t Type;
+    int8_t OpsNum;
+
+    bool isTargetType() { return Type >= MCOI::OPERAND_FIRST_TARGET; };
+};
+
 
 /// This holds information about one operand of a machine instruction,
 /// indicating the register class for register operands, etc.
