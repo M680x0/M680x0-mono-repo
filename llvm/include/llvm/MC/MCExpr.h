@@ -183,6 +183,7 @@ public:
     VK_GOTOFF,
     VK_GOTREL,
     VK_PCREL,
+    VK_GOTPC,
     VK_GOTPCREL,
     VK_GOTTPOFF,
     VK_INDNTPOFF,
