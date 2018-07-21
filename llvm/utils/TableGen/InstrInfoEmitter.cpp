@@ -136,7 +136,7 @@ GetMIOperandInfo(const CodeGenTarget &Target,
           + ", 1";
     } else {
       Res = std::to_string(Op.MIOperandNo)
-          + ", " + Namespace + "::MIOpTypes::" + Op.Rec->getName()
+          + ", " + Namespace + "::MIOpTypes::" + Op.Rec->getName().str()
           + ", " + std::to_string(Op.MINumOperands);
     }
 
