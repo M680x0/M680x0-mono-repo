@@ -414,7 +414,7 @@ void InstrInfoEmitter::emitOperandTypeMappings(
       if (!Op->isAnonymous()) {
         OS << "  " << Op->getName();
         if (First) {
-          OS << " = MCOI::OPERAND_FIRST_TARGET";
+          OS << " = llvm::MCOI::OPERAND_FIRST_TARGET";
           First = false;
         }
         OS << ",\n";
