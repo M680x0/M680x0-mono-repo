@@ -111,9 +111,9 @@ static void PrintDefList(const std::vector<Record*> &Uses,
 // Operand Info Emission.
 //===----------------------------------------------------------------------===//
 
-std::vector<std::string> InstrInfoEmitter::
-GetMIOperandInfo(const CodeGenTarget &Target,
-                 const CodeGenInstruction &Inst) {
+std::vector<std::string>
+InstrInfoEmitter::GetMIOperandInfo(const CodeGenTarget &Target,
+                                   const CodeGenInstruction &Inst) {
 
   std::vector<std::string> Result;
 
@@ -131,13 +131,11 @@ GetMIOperandInfo(const CodeGenTarget &Target,
     DagInit *MIOI = Op.MIOperandInfo;
 
     if (!MIOI || MIOI->getNumArgs() == 0) {
-      Res = std::to_string(Op.MIOperandNo)
-          + ", " + Op.OperandType
-          + ", 1";
+      Res = std::to_string(Op.MIOperandNo) + ", " + Op.OperandType + ", 1";
     } else {
-      Res = std::to_string(Op.MIOperandNo)
-          + ", " + Namespace + "::MIOpTypes::" + Op.Rec->getName().str()
-          + ", " + std::to_string(Op.MINumOperands);
+      Res = std::to_string(Op.MIOperandNo) + ", " + Namespace +
+            "::MIOpTypes::" + Op.Rec->getName().str() + ", " +
+            std::to_string(Op.MINumOperands);
     }
 
     Result.push_back(Res);
@@ -146,8 +144,8 @@ GetMIOperandInfo(const CodeGenTarget &Target,
   return Result;
 }
 
-void InstrInfoEmitter::
-EmitMIOperandInfo(raw_ostream &OS, OperandInfoMapTy &MIOperandInfoIDs) {
+void InstrInfoEmitter::EmitMIOperandInfo(raw_ostream &OS,
+                                         OperandInfoMapTy &MIOperandInfoIDs) {
   // ID #0 is for no operand info.
   unsigned OperandListNum = 0;
   MIOperandInfoIDs[std::vector<std::string>()] = ++OperandListNum;
@@ -157,7 +155,8 @@ EmitMIOperandInfo(raw_ostream &OS, OperandInfoMapTy &MIOperandInfoIDs) {
   for (const CodeGenInstruction *Inst : Target.getInstructionsByEnumValue()) {
     std::vector<std::string> OperandInfo = GetMIOperandInfo(Target, *Inst);
     unsigned &N = MIOperandInfoIDs[OperandInfo];
-    if (N != 0) continue;
+    if (N != 0)
+      continue;
 
     N = ++OperandListNum;
     OS << "static const MIOperandInfo MIOperandInfo" << N << "[] = { ";
@@ -402,6 +401,9 @@ void InstrInfoEmitter::emitOperandTypeMappings(
       Records.getAllDerivedDefinitions("RegisterOperand");
   std::vector<Record *> RegisterClasses =
       Records.getAllDerivedDefinitions("RegisterClass");
+
+
+
 
   OS << "namespace " << Namespace << " {\n";
   OS << "namespace MIOpTypes {\n";
