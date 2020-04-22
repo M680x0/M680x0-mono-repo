@@ -150,11 +150,8 @@ StringRef Triple::getArchTypePrefix(ArchType Kind) {
   case riscv32:
   case riscv64:     return "riscv";
 
-<<<<<<< HEAD
   case ve:          return "ve";
-=======
   case m680x0:     return "m680x0";
->>>>>>> 9c37fd004183... [M680x0] llvm 8 master rebase changes
   }
 }
 
@@ -221,14 +218,7 @@ StringRef Triple::getOSTypeName(OSType Kind) {
   case TvOS: return "tvos";
   case WASI: return "wasi";
   case WatchOS: return "watchos";
-<<<<<<< HEAD
   case Win32: return "windows";
-=======
-  case Mesa3D: return "mesa3d";
-  case Contiki: return "contiki";
-  case AMDPAL: return "amdpal";
-  case HermitCore: return "hermit";
->>>>>>> 9c37fd004183... [M680x0] llvm 8 master rebase changes
   }
 
   llvm_unreachable("Invalid OSType");
@@ -331,11 +321,8 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("wasm64", wasm64)
     .Case("renderscript32", renderscript32)
     .Case("renderscript64", renderscript64)
-<<<<<<< HEAD
     .Case("ve", ve)
-=======
     .Case("m680x0", m680x0)
->>>>>>> 9c37fd004183... [M680x0] llvm 8 master rebase changes
     .Default(UnknownArch);
 }
 
@@ -537,12 +524,9 @@ static Triple::OSType parseOS(StringRef OSName) {
     .StartsWith("contiki", Triple::Contiki)
     .StartsWith("amdpal", Triple::AMDPAL)
     .StartsWith("hermit", Triple::HermitCore)
-<<<<<<< HEAD
     .StartsWith("hurd", Triple::Hurd)
     .StartsWith("wasi", Triple::WASI)
     .StartsWith("emscripten", Triple::Emscripten)
-=======
->>>>>>> 9c37fd004183... [M680x0] llvm 8 master rebase changes
     .Default(Triple::UnknownOS);
 }
 
@@ -1283,27 +1267,10 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::tcele:
   case llvm::Triple::thumb:
   case llvm::Triple::thumbeb:
-<<<<<<< HEAD
-<<<<<<< HEAD
-  case llvm::Triple::wasm32:
-=======
-  case llvm::Triple::m680x0:
->>>>>>> de1c0223b4e2... [M680x0] Initial commit
   case llvm::Triple::x86:
   case llvm::Triple::xcore:
-=======
-  case llvm::Triple::x86:
-  case llvm::Triple::xcore:
-  case llvm::Triple::amdil:
-  case llvm::Triple::hsail:
-  case llvm::Triple::spir:
-  case llvm::Triple::kalimba:
-  case llvm::Triple::lanai:
-  case llvm::Triple::shave:
   case llvm::Triple::wasm32:
-  case llvm::Triple::renderscript32:
   case llvm::Triple::m680x0:
->>>>>>> 9c37fd004183... [M680x0] llvm 8 master rebase changes
     return 32;
 
   case llvm::Triple::aarch64:
@@ -1351,14 +1318,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::amdgcn:
   case Triple::avr:
   case Triple::bpfeb:
-<<<<<<< HEAD
-<<<<<<< HEAD
   case Triple::bpfel:
-=======
-  case Triple::m680x0:
->>>>>>> de1c0223b4e2... [M680x0] Initial commit
-=======
->>>>>>> 9c37fd004183... [M680x0] llvm 8 master rebase changes
   case Triple::msp430:
   case Triple::ppc64le:
   case Triple::systemz:
@@ -1394,14 +1354,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::wasm32:
   case Triple::x86:
   case Triple::xcore:
-<<<<<<< HEAD
-=======
-  case Triple::lanai:
-  case Triple::shave:
-  case Triple::wasm32:
-  case Triple::renderscript32:
   case Triple::m680x0:
->>>>>>> 9c37fd004183... [M680x0] llvm 8 master rebase changes
     // Already 32-bit.
     break;
 
@@ -1440,12 +1393,7 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::tce:
   case Triple::tcele:
   case Triple::xcore:
-<<<<<<< HEAD
-=======
-  case Triple::sparcel:
-  case Triple::shave:
   case Triple::m680x0:
->>>>>>> 9c37fd004183... [M680x0] llvm 8 master rebase changes
     T.setArch(UnknownArch);
     break;
 

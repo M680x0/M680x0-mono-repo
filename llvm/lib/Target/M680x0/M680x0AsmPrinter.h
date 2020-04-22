@@ -52,11 +52,11 @@ public:
 
   virtual bool runOnMachineFunction(MachineFunction &MF) override;
 
-  void EmitInstruction(const MachineInstr *MI) override;
-  void EmitFunctionBodyStart() override;
-  void EmitFunctionBodyEnd() override;
-  void EmitStartOfAsmFile(Module &M) override;
-  void EmitEndOfAsmFile(Module &M) override;
+  void emitInstruction(const MachineInstr *MI) override;
+  void emitFunctionBodyStart() override;
+  void emitFunctionBodyEnd() override;
+  void emitStartOfAsmFile(Module &M) override;
+  void emitEndOfAsmFile(Module &M) override;
 };
 } // namespace llvm
 

@@ -97,7 +97,7 @@ public:
   /// True if the stack can be realigned for the target.
   bool canRealignStack(const MachineFunction &MF) const override;
 
-  unsigned getFrameRegister(const MachineFunction &MF) const override;
+  Register getFrameRegister(const MachineFunction &MF) const override;
   unsigned getStackRegister() const { return StackPtr; }
   unsigned getBaseRegister() const { return BasePtr; }
   unsigned getGlobalBaseRegister() const { return GlobalBasePtr; }

@@ -85,7 +85,7 @@ M680x0RegisterInfo::getMatchingMegaReg(unsigned Reg,
 
 const TargetRegisterClass *
 M680x0RegisterInfo::getMaximalPhysRegClass(unsigned reg, MVT VT) const {
-  assert(isPhysicalRegister(reg) && "reg must be a physical register");
+  assert(Register::isPhysicalRegister(reg) && "reg must be a physical register");
 
   // Pick the most sub register class of the right type that contains
   // this physreg.
@@ -270,7 +270,7 @@ bool M680x0RegisterInfo::canRealignStack(const MachineFunction &MF) const {
   return true;
 }
 
-unsigned M680x0RegisterInfo::getFrameRegister(const MachineFunction &MF) const {
+Register M680x0RegisterInfo::getFrameRegister(const MachineFunction &MF) const {
   const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
   return TFI->hasFP(MF) ? FramePtr : StackPtr;
 }

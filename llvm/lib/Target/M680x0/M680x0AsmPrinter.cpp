@@ -46,6 +46,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
 #include "llvm/Target/TargetOptions.h"
+#include <memory>
 
 using namespace llvm;
 
@@ -53,12 +54,12 @@ using namespace llvm;
 
 bool M680x0AsmPrinter::runOnMachineFunction(MachineFunction &MF) {
   MMFI = MF.getInfo<M680x0MachineFunctionInfo>();
-  MCInstLowering = make_unique<M680x0MCInstLower>(MF, *this);
+  MCInstLowering = std::make_unique<M680x0MCInstLower>(MF, *this);
   AsmPrinter::runOnMachineFunction(MF);
   return true;
 }
 
-void M680x0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
+void M680x0AsmPrinter::emitInstruction(const MachineInstr *MI) {
   switch (MI->getOpcode()) {
   default: {
     if (MI->isPseudo()) {
@@ -77,22 +78,22 @@ void M680x0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
 
   MCInst TmpInst0;
   MCInstLowering->Lower(MI, TmpInst0);
-  OutStreamer->EmitInstruction(TmpInst0, getSubtargetInfo());
+  OutStreamer->emitInstruction(TmpInst0, getSubtargetInfo());
 }
 
-void M680x0AsmPrinter::EmitFunctionBodyStart() {
+void M680x0AsmPrinter::emitFunctionBodyStart() {
   // TODO #33
 }
 
-void M680x0AsmPrinter::EmitFunctionBodyEnd() {
+void M680x0AsmPrinter::emitFunctionBodyEnd() {
   // TODO #33
 }
 
-void M680x0AsmPrinter::EmitStartOfAsmFile(Module &M) {
-  OutStreamer->EmitSyntaxDirective();
+void M680x0AsmPrinter::emitStartOfAsmFile(Module &M) {
+  OutStreamer->emitSyntaxDirective();
 }
 
-void M680x0AsmPrinter::EmitEndOfAsmFile(Module &M) {}
+void M680x0AsmPrinter::emitEndOfAsmFile(Module &M) {}
 
 extern "C" void LLVMInitializeM680x0AsmPrinter() {
   RegisterAsmPrinter<M680x0AsmPrinter> X(TheM680x0Target);

@@ -66,17 +66,8 @@ enum OperandType {
 
   OPERAND_FIRST_TARGET = 13,
 };
+
 }
-
-class MIOperandInfo {
-  public:
-    std::int16_t MINo;
-    std::int16_t Type;
-    std::int16_t OpsNum;
-
-    bool isTargetType() { return Type >= MCOI::OPERAND_FIRST_TARGET; };
-};
-
 
 /// This holds information about one operand of a machine instruction,
 /// indicating the register class for register operands, etc.
@@ -196,7 +187,6 @@ enum Flag {
 class MCInstrDesc {
 public:
   unsigned short Opcode;         // The opcode number
-  unsigned short NumMIOperands;  // Num of MI args (may be more if variable_ops)
   unsigned short NumOperands;    // Num of args (may be more if variable_ops)
   unsigned char NumDefs;         // Num of args that are definitions
   unsigned char Size;            // Number of bytes in encoding.
@@ -205,7 +195,6 @@ public:
   uint64_t TSFlags;              // Target Specific Flag values
   const MCPhysReg *ImplicitUses; // Registers implicitly read by this instr
   const MCPhysReg *ImplicitDefs; // Registers implicitly defined by this instr
-  const MIOperandInfo *MIOpInfo; // 'NumMIOperands' entries about operands
   const MCOperandInfo *OpInfo;   // 'NumOperands' entries about operands
 
   /// Returns the value of the specific constraint if

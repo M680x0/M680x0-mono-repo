@@ -22,6 +22,7 @@
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Support/TargetRegistry.h"
+#include <memory>
 
 using namespace llvm;
 
@@ -94,7 +95,7 @@ M680x0TargetMachine::M680x0TargetMachine(const Target &T, const Triple &TT,
     : LLVMTargetMachine(T, computeDataLayout(TT, CPU, Options), TT, CPU, FS,
                         Options, getEffectiveRelocModel(TT, RM),
                         ::getEffectiveCodeModel(CM, JIT), OL),
-      TLOF(make_unique<M680x0ELFTargetObjectFile>()),
+      TLOF(std::make_unique<M680x0ELFTargetObjectFile>()),
       Subtarget(TT, CPU, FS, *this) {
   initAsmInfo();
 }
@@ -119,7 +120,7 @@ M680x0TargetMachine::getSubtargetImpl(const Function &F) const {
     // creation will depend on the TM and the code generation flags on the
     // function that reside in TargetOptions.
     resetTargetOptions(F);
-    I = llvm::make_unique<M680x0Subtarget>(TargetTriple, CPU, FS, *this);
+    I = std::make_unique<M680x0Subtarget>(TargetTriple, CPU, FS, *this);
   }
   return I.get();
 }
