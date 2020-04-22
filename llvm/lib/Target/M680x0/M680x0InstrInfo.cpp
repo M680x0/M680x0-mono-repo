@@ -617,8 +617,8 @@ bool M680x0InstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
 
 void M680x0InstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator MI,
-                                  const DebugLoc &DL, unsigned DstReg,
-                                  unsigned SrcReg, bool KillSrc) const {
+                                  const DebugLoc &DL, MCRegister DstReg,
+                                  MCRegister SrcReg, bool KillSrc) const {
   unsigned Opc = 0;
 
   // First deal with the normal symmetric copies.
@@ -737,7 +737,7 @@ bool M680x0InstrInfo::getStackSlotRange(const TargetRegisterClass *RC,
 
 void M680x0InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
                                           MachineBasicBlock::iterator MI,
-                                          unsigned SrcReg, bool isKill,
+                                          Register SrcReg, bool isKill,
                                           int FrameIndex,
                                           const TargetRegisterClass *RC,
                                           const TargetRegisterInfo *TRI) const {
@@ -752,7 +752,7 @@ void M680x0InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
 }
 
 void M680x0InstrInfo::loadRegFromStackSlot(
-    MachineBasicBlock &MBB, MachineBasicBlock::iterator MI, unsigned DstReg,
+    MachineBasicBlock &MBB, MachineBasicBlock::iterator MI, Register DstReg,
     int FrameIndex, const TargetRegisterClass *RC,
     const TargetRegisterInfo *TRI) const {
   const MachineFunction &MF = *MBB.getParent();

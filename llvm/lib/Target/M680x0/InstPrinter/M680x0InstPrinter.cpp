@@ -37,10 +37,11 @@ void M680x0InstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const {
   OS << "%" << StringRef(getRegisterName(RegNo));
 }
 
-void M680x0InstPrinter::printInst(const MCInst *MI, raw_ostream &O,
-                                  StringRef Annot, const MCSubtargetInfo &STI) {
-  if (!printAliasInstr(MI, O)) {
-    printInstruction(MI, O);
+void M680x0InstPrinter::printInst(const MCInst *MI, uint64_t Address,
+                                  StringRef Annot, const MCSubtargetInfo &STI,
+                                  raw_ostream &O) {
+  if (!printAliasInstr(MI, Address, O)) {
+    printInstruction(MI, Address, O);
   }
   printAnnotation(O, Annot);
 }
@@ -179,15 +180,15 @@ void M680x0InstPrinter::printAbsMem(const MCInst *MI, int opNum,
   }
 }
 
-void M680x0InstPrinter::printPCDMem(const MCInst *MI, int opNum,
-                                    raw_ostream &O) {
+void M680x0InstPrinter::printPCDMem(const MCInst *MI, uint64_t Address,
+                                    int opNum, raw_ostream &O) {
   O << '(';
   printDisp(MI, opNum + M680x0::PCRelDisp, O);
   O << ",%pc)";
 }
 
-void M680x0InstPrinter::printPCIMem(const MCInst *MI, int opNum,
-                                    raw_ostream &O) {
+void M680x0InstPrinter::printPCIMem(const MCInst *MI, uint64_t Address,
+                                    int opNum, raw_ostream &O) {
   O << '(';
   printDisp(MI, opNum + M680x0::PCRelDisp, O);
   O << ",%pc,";
