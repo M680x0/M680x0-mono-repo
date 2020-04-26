@@ -55,11 +55,8 @@ M680x0TargetLowering::M680x0TargetLowering(const M680x0TargetMachine &TM,
   auto *RegInfo = Subtarget.getRegisterInfo();
   setStackPointerRegisterToSaveRestore(RegInfo->getStackRegister());
 
-  ValueTypeActions.setTypeAction(MVT::i64, TypeExpandInteger);
-
-  // Use _setjmp/_longjmp instead of setjmp/longjmp.
-  setUseUnderscoreSetJmp(true);
-  setUseUnderscoreLongJmp(true);
+  // TODO: computeRegisterInfo should able to infer this info
+  //ValueTypeActions.setTypeAction(MVT::i64, TypeExpandInteger);
 
   // NOTE The stuff that follows is true for M68000
 
@@ -161,7 +158,8 @@ M680x0TargetLowering::M680x0TargetLowering(const M680x0TargetMachine &TM,
 
   computeRegisterProperties(STI.getRegisterInfo());
 
-  setMinFunctionAlignment(2); // 2^2 bytes // ??? can it be just 2^1?
+  // 2^2 bytes // ??? can it be just 2^1?
+  setMinFunctionAlignment(Align::Constant<2>());
 }
 
 EVT M680x0TargetLowering::getSetCCResultType(const DataLayout &DL,
@@ -218,7 +216,8 @@ static SDValue CreateCopyOfByValArgument(SDValue Src, SDValue Dst,
                                          SelectionDAG &DAG, const SDLoc &DL) {
   SDValue SizeNode = DAG.getConstant(Flags.getByValSize(), DL, MVT::i32);
 
-  return DAG.getMemcpy(Chain, DL, Dst, Src, SizeNode, Flags.getByValAlign(),
+  return DAG.getMemcpy(Chain, DL, Dst, Src, SizeNode,
+                       Flags.getNonZeroByValAlign(),
                        /*isVolatile*/ false, /*AlwaysInline=*/true,
                        /*isTailCall*/ false, MachinePointerInfo(),
                        MachinePointerInfo());
@@ -278,7 +277,7 @@ static bool MatchingStackOffset(SDValue Arg, unsigned Offset,
   int FI = INT_MAX;
   if (Arg.getOpcode() == ISD::CopyFromReg) {
     unsigned VR = cast<RegisterSDNode>(Arg.getOperand(1))->getReg();
-    if (!TargetRegisterInfo::isVirtualRegister(VR))
+    if (!Register::isVirtualRegister(VR))
       return false;
     MachineInstr *Def = MRI->getVRegDef(VR);
     if (!Def)
@@ -1495,9 +1494,11 @@ SDValue M680x0TargetLowering::LowerMUL(SDValue &N, SelectionDAG &DAG) const {
   if (!Subtarget.isM68020()) {
     SDValue LHS = N->getOperand(0);
     SDValue RHS = N->getOperand(1);
+    MakeLibCallOptions LCO;
+    LCO.setSExt();
     if (VT == MVT::i32) {
       SDValue Args[] = {LHS, RHS};
-      return makeLibCall(DAG, RTLIB::MUL_I32, VT, Args, true, DL).first;
+      return makeLibCall(DAG, RTLIB::MUL_I32, VT, Args, LCO, DL).first;
     } else if (VT == MVT::i64) {
       unsigned LoSize = VT.getSizeInBits();
       SDValue HiLHS = DAG.getNode(
@@ -1507,7 +1508,7 @@ SDValue M680x0TargetLowering::LowerMUL(SDValue &N, SelectionDAG &DAG) const {
           ISD::SRA, DL, VT, RHS,
           DAG.getConstant(LoSize - 1, DL, getPointerTy(DAG.getDataLayout())));
       SDValue Args[] = {HiLHS, LHS, HiRHS, RHS};
-      SDValue Ret = makeLibCall(DAG, RTLIB::MUL_I64, VT, Args, true, DL).first;
+      SDValue Ret = makeLibCall(DAG, RTLIB::MUL_I64, VT, Args, LCO, DL).first;
 
       // We are intereseted in Lo part
       return DAG.getNode(ISD::EXTRACT_ELEMENT, DL, VT, Ret,
@@ -2051,7 +2052,7 @@ SDValue M680x0TargetLowering::EmitCmp(SDValue Op0, SDValue Op1,
     // with an immediate.  16 bit immediates are to be avoided.
     if ((Op0.getValueType() == MVT::i16 &&
          (isa<ConstantSDNode>(Op0) || isa<ConstantSDNode>(Op1))) &&
-        !DAG.getMachineFunction().getFunction().optForMinSize()) {
+        !DAG.getMachineFunction().getFunction().hasMinSize()) {
       unsigned ExtendOp =
           isM680x0CCUnsigned(M680x0CC) ? ISD::ZERO_EXTEND : ISD::SIGN_EXTEND;
       Op0 = DAG.getNode(ExtendOp, DL, MVT::i32, Op0);
@@ -2124,7 +2125,8 @@ SDValue M680x0TargetLowering::LowerSETCC(SDValue Op, SelectionDAG &DAG) const {
   }
   if (Op0.getValueType() == MVT::i1 && (CC == ISD::SETEQ || CC == ISD::SETNE)) {
     if (isOneConstant(Op1)) {
-      ISD::CondCode NewCC = ISD::getSetCCInverse(CC, true);
+      // FIXME: See be15dfa88fb1 and a0f4600f4f0ec
+      ISD::CondCode NewCC = ISD::GlobalISel::getSetCCInverse(CC, true);
       return DAG.getSetCC(DL, VT, Op0, DAG.getConstant(0, DL, MVT::i1), NewCC);
     }
     if (!isNullConstant(Op1)) {

@@ -24,6 +24,7 @@ class MachineInstrBuilder;
 class MCCFIInstruction;
 class M680x0Subtarget;
 class M680x0RegisterInfo;
+struct Align;
 
 class M680x0FrameLowering : public TargetFrameLowering {
   // Cached subtarget predicates.
@@ -64,7 +65,7 @@ class M680x0FrameLowering : public TargetFrameLowering {
   unsigned getPSPSlotOffsetFromSP(const MachineFunction &MF) const;
 
 public:
-  explicit M680x0FrameLowering(const M680x0Subtarget &sti, unsigned Alignment);
+  explicit M680x0FrameLowering(const M680x0Subtarget &sti, Align Alignment);
 
   static const M680x0FrameLowering *create(const M680x0Subtarget &ST);
 
@@ -109,7 +110,7 @@ public:
   /// store instructions via storeRegToStackSlot(). Returns false otherwise.
   bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator MI,
-                                 const std::vector<CalleeSavedInfo> &CSI,
+                                 ArrayRef<CalleeSavedInfo> CSI,
                                  const TargetRegisterInfo *TRI) const override;
 
   /// Issues instruction(s) to restore all callee saved registers and returns
@@ -118,7 +119,7 @@ public:
   bool
   restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator MI,
-                              std::vector<CalleeSavedInfo> &CSI,
+                              MutableArrayRef<CalleeSavedInfo> CSI,
                               const TargetRegisterInfo *TRI) const override;
 
   /// Return true if the specified function should have a dedicated frame

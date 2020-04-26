@@ -47,8 +47,8 @@ static StringRef selectM680x0CPU(Triple TT, StringRef CPU) {
 void M680x0Subtarget::anchor() { }
 
 M680x0Subtarget::
-M680x0Subtarget(const Triple &TT, const std::string &CPU,
-                const std::string &FS,
+M680x0Subtarget(const Triple &TT, StringRef CPU,
+                StringRef FS,
                 const M680x0TargetMachine &TM) :
   M680x0GenSubtargetInfo(TT, CPU, FS), TM(TM), TSInfo(),
   InstrInfo(initializeSubtargetDependencies(CPU, TT, FS, TM)),
@@ -71,7 +71,7 @@ abiUsesSoftFloat() const {
 M680x0Subtarget & M680x0Subtarget::
 initializeSubtargetDependencies(StringRef CPU, Triple TT, StringRef FS,
                                 const M680x0TargetMachine &TM) {
-  std::string CPUName = selectM680x0CPU(TT, CPU);
+  std::string CPUName = selectM680x0CPU(TT, CPU).str();
 
   // Parse features string.
   // ParseSubtargetFeatures(CPUName, FS);
