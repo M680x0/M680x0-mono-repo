@@ -25,6 +25,7 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #define GET_INSTRINFO_MI_OPS_INFO
+#define GET_INSTRINFO_OPERAND_TYPES_ENUM
 #include "M680x0GenInstrInfo.inc"
 
 namespace llvm {
@@ -244,6 +245,8 @@ static inline bool isAddressRegister(unsigned RegNo) {
 }
 
 static inline bool isPCRelOpd(unsigned Opd) {
+  // FIXME
+#if 0
   switch (Opd) {
   default:
     return false;
@@ -256,9 +259,12 @@ static inline bool isPCRelOpd(unsigned Opd) {
   case MCOI::OPERAND_PCREL:
     return true;
   }
+#endif
+  return false;
 }
 
 static inline unsigned getDispSize(unsigned Opd) {
+#if 0
   switch (Opd) {
   default:
     return 0;
@@ -290,6 +296,8 @@ static inline unsigned getDispSize(unsigned Opd) {
   case M680x0::MIOpTypes::MxPCI8:
     return 8;
   }
+#endif
+  return 8;
 }
 
 static inline unsigned getMaskedSpillRegister(unsigned order) {

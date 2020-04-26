@@ -60,18 +60,20 @@ static MCRegisterInfo *createM680x0MCRegisterInfo(const Triple &TT) {
 
 static MCSubtargetInfo *
 createM680x0MCSubtargetInfo(const Triple &TT, StringRef CPU, StringRef FS) {
-  std::string ArchFS = ParseM680x0Triple(TT, CPU);
+  auto ArchFS = ParseM680x0Triple(TT, CPU);
   if (!FS.empty()) {
-    if (!ArchFS.empty())
-      ArchFS = ArchFS + "," + FS.str();
-    else
+    if (!ArchFS.empty()) {
+      ArchFS = (ArchFS + "," + FS).getSingleStringRef();
+    } else {
       ArchFS = FS;
+    }
   }
   return createM680x0MCSubtargetInfoImpl(TT, CPU, ArchFS);
 }
 
 static MCAsmInfo *createM680x0MCAsmInfo(const MCRegisterInfo &MRI,
-                                        const Triple &TT) {
+                                        const Triple &TT,
+                                        const MCTargetOptions& TO) {
   MCAsmInfo *MAI = new M680x0ELFMCAsmInfo(TT);
 
   // Initialize initial frame state.

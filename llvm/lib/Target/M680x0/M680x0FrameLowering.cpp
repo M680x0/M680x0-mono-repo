@@ -27,13 +27,14 @@
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Function.h"
+#include "llvm/Support/Alignment.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Target/TargetOptions.h"
 
 using namespace llvm;
 
 M680x0FrameLowering::M680x0FrameLowering(const M680x0Subtarget &STI,
-                                         unsigned Alignment)
+                                         Align Alignment)
     : TargetFrameLowering(StackGrowsDown, Alignment, -4), STI(STI),
       TII(*STI.getInstrInfo()), TRI(STI.getRegisterInfo()) {
   SlotSize = STI.getSlotSize();
@@ -200,7 +201,7 @@ static bool isRegLiveIn(MachineBasicBlock &MBB, unsigned Reg) {
 uint64_t
 M680x0FrameLowering::calculateMaxStackAlign(const MachineFunction &MF) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
-  uint64_t MaxAlign = MFI.getMaxAlignment(); // Desired stack alignment.
+  uint64_t MaxAlign = MFI.getMaxAlign().value(); // Desired stack alignment.
   unsigned StackAlign = getStackAlignment(); // ABI alignment
   if (MF.getFunction().hasFnAttribute("stackrealign")) {
     if (MFI.hasCalls())
@@ -868,7 +869,7 @@ bool M680x0FrameLowering::assignCalleeSavedSpillSlots(
 
 bool M680x0FrameLowering::spillCalleeSavedRegisters(
     MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
-    const std::vector<CalleeSavedInfo> &CSI,
+    ArrayRef<CalleeSavedInfo> CSI,
     const TargetRegisterInfo *TRI) const {
   auto &MRI = *static_cast<const M680x0RegisterInfo *>(TRI);
   auto DL = MBB.findDebugLoc(MI);
@@ -904,7 +905,7 @@ bool M680x0FrameLowering::spillCalleeSavedRegisters(
 
 bool M680x0FrameLowering::restoreCalleeSavedRegisters(
     MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
-    std::vector<CalleeSavedInfo> &CSI, const TargetRegisterInfo *TRI) const {
+    MutableArrayRef<CalleeSavedInfo> CSI, const TargetRegisterInfo *TRI) const {
   auto &MRI = *static_cast<const M680x0RegisterInfo *>(TRI);
   auto DL = MBB.findDebugLoc(MI);
 
