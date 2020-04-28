@@ -47,8 +47,7 @@ static StringRef selectM680x0CPU(Triple TT, StringRef CPU) {
 void M680x0Subtarget::anchor() { }
 
 M680x0Subtarget::
-M680x0Subtarget(const Triple &TT, StringRef CPU,
-                StringRef FS,
+M680x0Subtarget(const Triple &TT, StringRef CPU, StringRef FS,
                 const M680x0TargetMachine &TM) :
   M680x0GenSubtargetInfo(TT, CPU, FS), TM(TM), TSInfo(),
   InstrInfo(initializeSubtargetDependencies(CPU, TT, FS, TM)),
@@ -71,7 +70,7 @@ abiUsesSoftFloat() const {
 M680x0Subtarget & M680x0Subtarget::
 initializeSubtargetDependencies(StringRef CPU, Triple TT, StringRef FS,
                                 const M680x0TargetMachine &TM) {
-  std::string CPUName = selectM680x0CPU(TT, CPU).str();
+  StringRef CPUName = selectM680x0CPU(TT, CPU);
 
   // Parse features string.
   // ParseSubtargetFeatures(CPUName, FS);
@@ -85,7 +84,7 @@ initializeSubtargetDependencies(StringRef CPU, Triple TT, StringRef FS,
   // if (StackAlignOverride)
   //   stackAlignment = StackAlignOverride;
   // else
-    stackAlignment = 8;
+    stackAlignment = Align::Constant<8>();
 
   return *this;
 }

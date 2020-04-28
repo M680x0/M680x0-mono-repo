@@ -198,16 +198,20 @@ static bool isRegLiveIn(MachineBasicBlock &MBB, unsigned Reg) {
   return false;
 }
 
-uint64_t
+Align
 M680x0FrameLowering::calculateMaxStackAlign(const MachineFunction &MF) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
-  uint64_t MaxAlign = MFI.getMaxAlign().value(); // Desired stack alignment.
-  unsigned StackAlign = getStackAlignment(); // ABI alignment
+  Align MaxAlign = MFI.getMaxAlign(); // Desired stack alignment.
+  Align StackAlign = getStackAlign(); // ABI alignment
   if (MF.getFunction().hasFnAttribute("stackrealign")) {
-    if (MFI.hasCalls())
+    if (MFI.hasCalls()) {
       MaxAlign = (StackAlign > MaxAlign) ? StackAlign : MaxAlign;
-    else if (MaxAlign < SlotSize)
-      MaxAlign = SlotSize;
+    }
+    else {
+      Align SlotSizeAlign(SlotSize);
+      if (MaxAlign < SlotSizeAlign)
+        MaxAlign = SlotSizeAlign;
+    }
   }
   return MaxAlign;
 }
@@ -215,8 +219,8 @@ M680x0FrameLowering::calculateMaxStackAlign(const MachineFunction &MF) const {
 void M680x0FrameLowering::BuildStackAlignAND(MachineBasicBlock &MBB,
                                              MachineBasicBlock::iterator MBBI,
                                              const DebugLoc &DL, unsigned Reg,
-                                             uint64_t MaxAlign) const {
-  uint64_t Val = -MaxAlign;
+                                             Align MaxAlign) const {
+  uint64_t Val = -MaxAlign.value();
   unsigned AndOp = getANDriOpcode(Val);
   unsigned MovOp = getMOVrrOpcode();
 
@@ -509,7 +513,7 @@ void M680x0FrameLowering::emitPrologue(MachineFunction &MF,
   const auto &Fn = MF.getFunction();
   MachineModuleInfo &MMI = MF.getMMI();
   M680x0MachineFunctionInfo *MMFI = MF.getInfo<M680x0MachineFunctionInfo>();
-  uint64_t MaxAlign = calculateMaxStackAlign(MF); // Desired stack alignment.
+  Align MaxAlign = calculateMaxStackAlign(MF); // Desired stack alignment.
   uint64_t StackSize = MFI.getStackSize(); // Number of bytes to allocate.
   EHPersonality Personality = EHPersonality::Unknown;
   if (Fn.hasPersonalityFn())
@@ -723,7 +727,7 @@ void M680x0FrameLowering::emitEpilogue(MachineFunction &MF,
 
   // Get the number of bytes to allocate from the FrameInfo.
   uint64_t StackSize = MFI.getStackSize();
-  uint64_t MaxAlign = calculateMaxStackAlign(MF);
+  Align MaxAlign = calculateMaxStackAlign(MF);
   unsigned CSSize = MMFI->getCalleeSavedFrameSize();
   uint64_t NumBytes = 0;
 

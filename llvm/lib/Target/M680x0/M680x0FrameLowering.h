@@ -41,7 +41,7 @@ class M680x0FrameLowering : public TargetFrameLowering {
   /// info, we need to know the ABI stack alignment as well in case we have a
   /// call out.  Otherwise just make sure we have some alignment - we'll go
   /// with the minimum SlotSize.
-  uint64_t calculateMaxStackAlign(const MachineFunction &MF) const;
+  Align calculateMaxStackAlign(const MachineFunction &MF) const;
 
   /// Adjusts the stack pointer using LEA, SUB, or ADD.
   MachineInstrBuilder BuildStackAdjustment(MachineBasicBlock &MBB,
@@ -52,7 +52,7 @@ class M680x0FrameLowering : public TargetFrameLowering {
   /// Aligns the stack pointer by ANDing it with -MaxAlign.
   void BuildStackAlignAND(MachineBasicBlock &MBB,
                           MachineBasicBlock::iterator MBBI, const DebugLoc &DL,
-                          unsigned Reg, uint64_t MaxAlign) const;
+                          unsigned Reg, Align MaxAlign) const;
 
   /// Wraps up getting a CFI index and building a MachineInstr for it.
   void BuildCFI(MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI,
