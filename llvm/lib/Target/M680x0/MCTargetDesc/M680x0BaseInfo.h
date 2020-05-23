@@ -26,6 +26,7 @@
 
 #define GET_INSTRINFO_MI_OPS_INFO
 #define GET_INSTRINFO_OPERAND_TYPES_ENUM
+#define GET_INSTRINFO_LOGICAL_OPERAND_SIZE_MAP
 #include "M680x0GenInstrInfo.inc"
 
 namespace llvm {
@@ -244,9 +245,13 @@ static inline bool isAddressRegister(unsigned RegNo) {
   }
 }
 
-static inline bool isPCRelOpd(unsigned Opd) {
-  // FIXME
+static inline
+bool hasMultiMIOperands(unsigned Op, unsigned LogicalOpIdx) {
+  return M680x0::getLogicalOperandSize(Op, LogicalOpIdx) > 1;
+}
+
 #if 0
+static inline bool isPCRelOpd(unsigned Opd) {
   switch (Opd) {
   default:
     return false;
@@ -259,12 +264,10 @@ static inline bool isPCRelOpd(unsigned Opd) {
   case MCOI::OPERAND_PCREL:
     return true;
   }
-#endif
   return false;
 }
 
 static inline unsigned getDispSize(unsigned Opd) {
-#if 0
   switch (Opd) {
   default:
     return 0;
@@ -296,9 +299,9 @@ static inline unsigned getDispSize(unsigned Opd) {
   case M680x0::MIOpTypes::MxPCI8:
     return 8;
   }
-#endif
   return 8;
 }
+#endif
 
 static inline unsigned getMaskedSpillRegister(unsigned order) {
   switch (order) {

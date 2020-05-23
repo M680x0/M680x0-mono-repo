@@ -362,6 +362,8 @@ class MxInst<dag outs, dag ins,
 
   // Number of bytes
   let Size = 0;
+
+  let UseLogicalOperandMappings = 1;
 }
 
 // M680x0 PSEUDO INSTRUCTION
