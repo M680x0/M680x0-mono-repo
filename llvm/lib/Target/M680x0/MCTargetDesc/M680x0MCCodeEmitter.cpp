@@ -131,22 +131,22 @@ unsigned M680x0MCCodeEmitter::EncodeReg(unsigned ThisByte, uint8_t Bead,
                     << " Op: " << Op << ", DA: " << DA << ", Reg: " << Reg
                     << ", Alt: " << Alt << "\n");
 
-  assert(Op < Desc.NumMIOperands);
-  MIOperandInfo MIO = Desc.MIOpInfo[Op];
-  bool isPCRel = M680x0II::isPCRelOpd(MIO.Type);
+  auto MIOpIdx = M680x0::getLogicalOperandIdx(MI.getOpcode(), Op);
+  bool isPCRel = Desc.OpInfo[MIOpIdx].OperandType == MCOI::OPERAND_PCREL;
+
   MCOperand MCO;
-  if (MIO.isTargetType() && MIO.OpsNum > 1) {
+  if (M680x0II::hasMultiMIOperands(MI.getOpcode(), Op)) {
     if (isPCRel) {
       assert(Alt &&
              "PCRel addresses use Alt bead register encoding by default");
-      MCO = MI.getOperand(MIO.MINo + M680x0::PCRelIndex);
+      MCO = MI.getOperand(MIOpIdx + M680x0::PCRelIndex);
     } else {
       MCO =
-          MI.getOperand(MIO.MINo + (Alt ? M680x0::MemIndex : M680x0::MemBase));
+          MI.getOperand(MIOpIdx + (Alt ? M680x0::MemIndex : M680x0::MemBase));
     }
   } else {
     assert(!Alt && "You cannot use Alt register with a simple operand");
-    MCO = MI.getOperand(MIO.MINo);
+    MCO = MI.getOperand(MIOpIdx);
   }
 
   unsigned RegNum = MCO.getReg();
@@ -211,9 +211,8 @@ unsigned M680x0MCCodeEmitter::EncodeImm(unsigned ThisByte, uint8_t Bead,
   unsigned Op = (Bead & 0x70) >> 4;
   bool Alt = (Bead & 0x80);
 
-  assert(Op < Desc.NumMIOperands);
-  MIOperandInfo MIO = Desc.MIOpInfo[Op];
-  bool isPCRel = M680x0II::isPCRelOpd(MIO.Type);
+  auto MIOpIdx = M680x0::getLogicalOperandIdx(MI.getOpcode(), Op);
+  bool isPCRel = Desc.OpInfo[MIOpIdx].OperandType == MCOI::OPERAND_PCREL;
 
   // The PC value upon instruction reading of a short jump will point to the
   // next instruction, thus we need to compensate 2 bytes, which is the diff
@@ -258,14 +257,14 @@ unsigned M680x0MCCodeEmitter::EncodeImm(unsigned ThisByte, uint8_t Bead,
                     << "\n");
 
   MCOperand MCO;
-  if (MIO.isTargetType()) {
+  if (M680x0II::hasMultiMIOperands(MI.getOpcode(), Op)) {
 
     if (isPCRel) {
       assert(!Alt && "You cannot use ALT operand with PCRel");
-      MCO = MI.getOperand(MIO.MINo + M680x0::PCRelDisp);
+      MCO = MI.getOperand(MIOpIdx + M680x0::PCRelDisp);
     } else {
       MCO =
-          MI.getOperand(MIO.MINo + (Alt ? M680x0::MemOuter : M680x0::MemDisp));
+          MI.getOperand(MIOpIdx + (Alt ? M680x0::MemOuter : M680x0::MemDisp));
     }
 
     if (MCO.isExpr()) {
@@ -291,7 +290,7 @@ unsigned M680x0MCCodeEmitter::EncodeImm(unsigned ThisByte, uint8_t Bead,
 
   } else {
     // assert (!Alt && "You cannot use Alt immediate with a simple operand");
-    MCO = MI.getOperand(MIO.MINo);
+    MCO = MI.getOperand(MIOpIdx);
     if (MCO.isExpr()) {
       assert(!NoExpr && "Cannot use expression here");
       const MCExpr *Expr = MCO.getExpr();
