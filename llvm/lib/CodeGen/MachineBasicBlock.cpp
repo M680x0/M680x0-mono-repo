@@ -1365,7 +1365,7 @@ MachineBasicBlock::findDebugLoc(instr_iterator MBBI) {
   return {};
 }
 DebugLoc
-MachineBasicBlock::findDebugLoc(reverse_instr_iterator MBBI) {
+MachineBasicBlock::rfindDebugLoc(reverse_instr_iterator MBBI) {
   // Skip debug declarations, we don't want a DebugLoc from them.
   MBBI = skipDebugInstructionsBackward(MBBI, instr_rbegin());
   if (!MBBI->isDebugInstr()) return MBBI->getDebugLoc();
@@ -1381,7 +1381,7 @@ DebugLoc MachineBasicBlock::findPrevDebugLoc(instr_iterator MBBI) {
   if (!MBBI->isDebugInstr()) return MBBI->getDebugLoc();
   return {};
 }
-DebugLoc MachineBasicBlock::findPrevDebugLoc(reverse_instr_iterator MBBI) {
+DebugLoc MachineBasicBlock::rfindPrevDebugLoc(reverse_instr_iterator MBBI) {
   // Skip debug declarations, we don't want a DebugLoc from them.
   MBBI = skipDebugInstructionsForward(std::prev(MBBI), instr_rend());
   if (MBBI != instr_rend())

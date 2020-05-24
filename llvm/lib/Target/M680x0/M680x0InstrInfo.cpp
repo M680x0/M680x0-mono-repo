@@ -199,7 +199,7 @@ bool M680x0InstrInfo::AnalyzeBranchImpl(MachineBasicBlock &MBB,
           BranchCode = GetOppositeBranchCondition(BranchCode);
           unsigned BNCC = GetCondBranchFromCond(BranchCode);
 
-          BuildMI(MBB, *UncondBranch.first, MBB.findDebugLoc(iter), get(BNCC))
+          BuildMI(MBB, *UncondBranch.first, MBB.rfindDebugLoc(iter), get(BNCC))
               .addMBB(UncondBranch.second);
 
           EraseList.push_back(*iter);
