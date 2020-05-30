@@ -16,7 +16,7 @@
 
 #include "M680x0MCAsmInfo.h"
 
-#include "InstPrinter/M680x0InstPrinter.h"
+#include "M680x0InstPrinter.h"
 
 #include "llvm/MC/MCELFStreamer.h"
 #include "llvm/MC/MCInstPrinter.h"

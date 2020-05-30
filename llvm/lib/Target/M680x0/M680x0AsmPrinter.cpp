@@ -21,7 +21,7 @@
 #include "M680x0InstrInfo.h"
 #include "M680x0MachineFunction.h"
 
-#include "InstPrinter/M680x0InstPrinter.h"
+#include "MCTargetDesc/M680x0InstPrinter.h"
 #include "MCTargetDesc/M680x0BaseInfo.h"
 
 #include "llvm/ADT/STLExtras.h"
