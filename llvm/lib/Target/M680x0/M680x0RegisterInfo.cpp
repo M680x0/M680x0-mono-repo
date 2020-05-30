@@ -200,7 +200,7 @@ void M680x0RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   // Now add the frame object offset to the offset from FP.
   int FIOffset;
-  unsigned IgnoredFrameReg;
+  Register IgnoredFrameReg;
   if (AfterFPPop) {
     // Tail call jmp happens after FP is popped.
     const MachineFrameInfo &MFI = MF.getFrameInfo();

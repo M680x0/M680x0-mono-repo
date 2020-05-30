@@ -32,15 +32,15 @@ let Namespace = "M680x0" in {
 
 // Generate Data registers and theirs smaller variants
 foreach Index = 0-7 in {
-  def "BD"#Index : MxReg<"d"#Index, #Index, [], [], [Index]>;
+  def "BD"#Index : MxReg<"d"#Index, Index, [], [], [Index]>;
 
   def "WD"#Index
-    : MxReg<"d"#Index, #Index,
+    : MxReg<"d"#Index, Index,
             [!cast<Register>("BD"#Index)], [MxSubRegIndex8Lo],
             [Index]>;
 
   def "D"#Index
-    : MxReg<"d"#Index, #Index,
+    : MxReg<"d"#Index, Index,
             [!cast<Register>("WD"#Index)], [MxSubRegIndex16Lo],
             [Index]>;
 
@@ -49,10 +49,10 @@ foreach Index = 0-7 in {
 // Generate Address registers and theirs smaller variants
 foreach Index = 0-7 in {
   def "WA"#Index
-     : MxReg<"a"#Index, #Index, [], [], [!add(8,Index)]>;
+     : MxReg<"a"#Index, Index, [], [], [!add(8,Index)]>;
 
   def "A"#Index
-     : MxReg<"a"#Index, #Index,
+     : MxReg<"a"#Index, Index,
              [!cast<Register>("WA"#Index)], [MxSubRegIndex16Lo],
              [!add(8,Index)]>;
 }

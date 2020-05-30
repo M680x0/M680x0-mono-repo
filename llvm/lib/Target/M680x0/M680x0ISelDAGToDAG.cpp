@@ -30,6 +30,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Type.h"
+#include "llvm/Support/Alignment.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -80,14 +81,14 @@ struct M680x0ISelAddressMode {
   const char *ES;
   MCSymbol *MCSym;
   int JT;
-  unsigned Align; // CP alignment.
+  Align Alignment; // CP alignment.
 
   unsigned char SymbolFlags; // M680x0II::MO_*
 
   M680x0ISelAddressMode(AddrType AT)
       : AM(AT), BaseType(RegBase), Disp(0), BaseFrameIndex(0), IndexReg(),
         Scale(1), GV(nullptr), CP(nullptr), BlockAddr(nullptr), ES(nullptr),
-        MCSym(nullptr), JT(-1), Align(0), SymbolFlags(M680x0II::MO_NO_FLAG) {}
+        MCSym(nullptr), JT(-1), Alignment(0U), SymbolFlags(M680x0II::MO_NO_FLAG) {}
 
   bool hasSymbolicDisplacement() const {
     return GV != nullptr || CP != nullptr || ES != nullptr ||
@@ -253,8 +254,8 @@ private:
                                            AM.SymbolFlags);
       return true;
     } else if (AM.CP) {
-      Sym = CurDAG->getTargetConstantPool(AM.CP, MVT::i32, AM.Align, AM.Disp,
-                                          AM.SymbolFlags);
+      Sym = CurDAG->getTargetConstantPool(AM.CP, MVT::i32, AM.Alignment,
+                                          AM.Disp, AM.SymbolFlags);
       return true;
     } else if (AM.ES) {
       assert(!AM.Disp && "Non-zero displacement is ignored with ES.");
@@ -585,7 +586,7 @@ bool M680x0DAGToDAGISel::matchWrapper(SDValue N, M680x0ISelAddressMode &AM) {
       }
     } else if (ConstantPoolSDNode *CP = dyn_cast<ConstantPoolSDNode>(N0)) {
       AM.CP = CP->getConstVal();
-      AM.Align = CP->getAlignment();
+      AM.Alignment = CP->getAlign();
       AM.SymbolFlags = CP->getTargetFlags();
       if (!foldOffsetIntoAddress(CP->getOffset(), AM)) {
         AM = Backup;
@@ -625,7 +626,7 @@ bool M680x0DAGToDAGISel::matchWrapper(SDValue N, M680x0ISelAddressMode &AM) {
       AM.SymbolFlags = G->getTargetFlags();
     } else if (ConstantPoolSDNode *CP = dyn_cast<ConstantPoolSDNode>(N0)) {
       AM.CP = CP->getConstVal();
-      AM.Align = CP->getAlignment();
+      AM.Alignment = CP->getAlign();
       AM.Disp += CP->getOffset();
       AM.SymbolFlags = CP->getTargetFlags();
     } else if (ExternalSymbolSDNode *S = dyn_cast<ExternalSymbolSDNode>(N0)) {

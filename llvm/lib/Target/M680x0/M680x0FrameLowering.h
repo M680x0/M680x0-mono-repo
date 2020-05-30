@@ -154,7 +154,7 @@ public:
   /// a frame index location. The offset is returned directly, and the base
   /// register is returned via FrameReg.
   int getFrameIndexReference(const MachineFunction &MF, int FI,
-                             unsigned &FrameReg) const override;
+                             Register &FrameReg) const override;
 
   /// Check the instruction before/after the passed instruction. If
   /// it is an ADD/SUB/LEA instruction it is deleted argument and the

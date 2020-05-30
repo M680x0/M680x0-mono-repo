@@ -74,8 +74,8 @@ public:
                             const MCRelaxableFragment *DF,
                             const MCAsmLayout &Layout) const override;
 
-  void relaxInstruction(const MCInst &Inst, const MCSubtargetInfo &STI,
-                        MCInst &Res) const override;
+  void relaxInstruction(MCInst &Inst,
+                        const MCSubtargetInfo &STI) const override;
 
   /// Returns the minimum size of a nop in bytes on this target. The assembler
   /// will use this to emit excess padding in situations where the padding
@@ -190,9 +190,8 @@ bool M680x0AsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
 
 // NOTE Can tblgen help at all here to verify there aren't other instructions
 // we can relax?
-void M680x0AsmBackend::relaxInstruction(const MCInst &Inst,
-                                        const MCSubtargetInfo &STI,
-                                        MCInst &Res) const {
+void M680x0AsmBackend::relaxInstruction(MCInst &Inst,
+                                        const MCSubtargetInfo &STI) const {
   // The only relaxations M680x0 does is from a 1byte pcrel to a 2byte PCRel.
   unsigned RelaxedOp = getRelaxedOpcode(Inst);
 
@@ -204,8 +203,7 @@ void M680x0AsmBackend::relaxInstruction(const MCInst &Inst,
     report_fatal_error("unexpected instruction to relax: " + OS.str());
   }
 
-  Res = Inst;
-  Res.setOpcode(RelaxedOp);
+  Inst.setOpcode(RelaxedOp);
 }
 
 bool M680x0AsmBackend::writeNopData(raw_ostream &OS, uint64_t Count) const {

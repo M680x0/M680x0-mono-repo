@@ -526,7 +526,7 @@ M680x0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   //     isTailCall = false;
   // }
 
-  bool IsMustTail = CLI.CS && CLI.CS.isMustTailCall();
+  bool IsMustTail = CLI.CB && CLI.CB->isMustTailCall();
   if (IsMustTail) {
     // Force this to be a tail call.  The verifier rules are enough to ensure
     // that we can lower this successfully without moving the return address
@@ -554,7 +554,7 @@ M680x0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Analyze operands of the call, assigning locations to each operand.
   SmallVector<CCValAssign, 16> ArgLocs;
   // It is empty for LibCall
-  const Function *CalleeFunc = CLI.CS ? CLI.CS.getCalledFunction() : nullptr;
+  const Function *CalleeFunc = CLI.CB ? CLI.CB->getCalledFunction() : nullptr;
   M680x0CCState CCInfo(*CalleeFunc, CallConv, isVarArg, MF, ArgLocs,
                        *DAG.getContext());
   CCInfo.AnalyzeCallOperands(Outs, CC_M680x0);
@@ -2763,7 +2763,7 @@ SDValue M680x0TargetLowering::LowerConstantPool(SDValue Op,
 
   auto PtrVT = getPointerTy(DAG.getDataLayout());
   SDValue Result = DAG.getTargetConstantPool(
-      CP->getConstVal(), PtrVT, CP->getAlignment(), CP->getOffset(), OpFlag);
+      CP->getConstVal(), PtrVT, CP->getAlign(), CP->getOffset(), OpFlag);
 
   SDLoc DL(CP);
   Result = DAG.getNode(WrapperKind, DL, PtrVT, Result);

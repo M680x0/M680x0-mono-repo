@@ -81,7 +81,7 @@ static MCAsmInfo *createM680x0MCAsmInfo(const MCRegisterInfo &MRI,
   int stackGrowth = -4;
 
   // Initial state of the frame pointer is SP+stackGrowth.
-  MCCFIInstruction Inst = MCCFIInstruction::createDefCfa(
+  MCCFIInstruction Inst = MCCFIInstruction::cfiDefCfa(
       nullptr, MRI.getDwarfRegNum(llvm::M680x0::SP, true), -stackGrowth);
   MAI->addInitialFrameState(Inst);
 

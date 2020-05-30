@@ -29,6 +29,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/Support/Alignment.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
 using namespace llvm;
@@ -76,7 +77,7 @@ bool M680x0FrameLowering::needsFrameIndexResolution(
 // (probably?) it should be moved into here.
 int M680x0FrameLowering::getFrameIndexReference(const MachineFunction &MF,
                                                 int FI,
-                                                unsigned &FrameReg) const {
+                                                Register &FrameReg) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
 
   // We can't calculate offset from frame pointer if the stack is realigned,
@@ -105,7 +106,7 @@ int M680x0FrameLowering::getFrameIndexReference(const MachineFunction &MF,
       // Skip the saved FP.
       return Offset + SlotSize;
     } else {
-      assert((-(Offset + StackSize)) % MFI.getObjectAlignment(FI) == 0);
+      assert((-(Offset + StackSize)) % MFI.getObjectAlign(FI).value() == 0);
       return Offset + StackSize;
     }
   } else if (TRI->needsStackRealignment(MF)) {
@@ -587,7 +588,7 @@ void M680x0FrameLowering::emitPrologue(MachineFunction &MF,
       // Define the current CFA rule to use the provided offset.
       assert(StackSize);
       BuildCFI(MBB, MBBI, DL,
-               MCCFIInstruction::createDefCfaOffset(nullptr, 2 * stackGrowth));
+               MCCFIInstruction::cfiDefCfaOffset(nullptr, 2 * stackGrowth));
 
       // Change the rule for the FramePtr to be an "offset" rule.
       int DwarfFramePtr = TRI->getDwarfRegNum(MachineFramePtr, true);
@@ -632,7 +633,7 @@ void M680x0FrameLowering::emitPrologue(MachineFunction &MF,
       // Define the current CFA rule to use the provided offset.
       assert(StackSize);
       BuildCFI(MBB, MBBI, DL,
-               MCCFIInstruction::createDefCfaOffset(nullptr, StackOffset));
+               MCCFIInstruction::cfiDefCfaOffset(nullptr, StackOffset));
       StackOffset += stackGrowth;
     }
   }
@@ -680,7 +681,7 @@ void M680x0FrameLowering::emitPrologue(MachineFunction &MF,
       // Define the current CFA rule to use the provided offset.
       assert(StackSize);
       BuildCFI(MBB, MBBI, DL,
-               MCCFIInstruction::createDefCfaOffset(nullptr,
+               MCCFIInstruction::cfiDefCfaOffset(nullptr,
                                                     -StackSize + stackGrowth));
     }
 
