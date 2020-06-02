@@ -175,7 +175,7 @@ def : Pat<(MxBrCond bb:$target, !cast<PatLeaf>("MxCOND"#cc), CCR),
 /// -------------------------------------------------
 ///  32-BIT DISPLACEMENT IF 8-BIT DISPLACEMENT = $FF
 /// -------------------------------------------------
-let isBranch = 1, isTerminator = 1 in
+let isBranch = 1, isTerminator = 1, isBarrier = 1 in
 class MxBra<Operand TARGET, MxType TYPE, MxEncoding ENC = MxEncEmpty>
     : MxInst<(outs), (ins TARGET:$dst), "bra\t$dst", [], ENC>;
 

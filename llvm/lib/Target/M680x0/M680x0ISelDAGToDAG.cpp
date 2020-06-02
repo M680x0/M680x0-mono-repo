@@ -88,7 +88,7 @@ struct M680x0ISelAddressMode {
   M680x0ISelAddressMode(AddrType AT)
       : AM(AT), BaseType(RegBase), Disp(0), BaseFrameIndex(0), IndexReg(),
         Scale(1), GV(nullptr), CP(nullptr), BlockAddr(nullptr), ES(nullptr),
-        MCSym(nullptr), JT(-1), Alignment(0U), SymbolFlags(M680x0II::MO_NO_FLAG) {}
+        MCSym(nullptr), JT(-1), Alignment(), SymbolFlags(M680x0II::MO_NO_FLAG) {}
 
   bool hasSymbolicDisplacement() const {
     return GV != nullptr || CP != nullptr || ES != nullptr ||
