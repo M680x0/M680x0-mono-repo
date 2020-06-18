@@ -17,9 +17,9 @@
 #include "M680x0InstrBuilder.h"
 #include "M680x0MachineFunction.h"
 #include "M680x0TargetMachine.h"
-#include "Utils/FinalAction.h"
 
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/ScopeExit.h"
 #include "llvm/CodeGen/LivePhysRegs.h"
 #include "llvm/CodeGen/LiveVariables.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
@@ -91,7 +91,7 @@ bool M680x0InstrInfo::AnalyzeBranchImpl(MachineBasicBlock &MBB,
 
   // Erase any instructions if allowed at the end of the scope.
   std::vector<std::reference_wrapper<llvm::MachineInstr>> EraseList;
-  finally([&EraseList] {
+  auto FinalizeOnReturn = llvm::make_scope_exit([&EraseList] {
     std::for_each(EraseList.begin(), EraseList.end(),
                   [](decltype(EraseList)::value_type &ref) {
                     ref.get().eraseFromParent();
