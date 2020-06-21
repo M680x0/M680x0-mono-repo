@@ -75,8 +75,7 @@ define i64 @test4(i64 %x) nounwind {
 ; x00-LABEL: test6:
 ; x00:       move.l (12,%sp), %d0
 ; x00:       or.l (8,%sp), %d0
-; x00:       bne
-; x00:       bra
+; x00:       beq
 define i32 @test6() nounwind align 2 {
   %A = alloca {i64, i64}, align 8
   %B = getelementptr inbounds {i64, i64}, {i64, i64}* %A, i64 0, i32 1

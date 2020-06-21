@@ -9,7 +9,7 @@ declare {i32, i1} @llvm.usub.with.overflow.i32(i32, i32)
 
 ; x00-LABEL: func1:
 ; x00:       sub.l (20,%sp)
-; x00-NEXT:  bvs
+; x00-NEXT:  bvc
 define i1 @func1(i32 %v1, i32 %v2) nounwind {
 entry:
   %t = call {i32, i1} @llvm.ssub.with.overflow.i32(i32 %v1, i32 %v2)
@@ -28,7 +28,7 @@ overflow:
 
 ; x00-LABEL: func2:
 ; x00:       sub.l (20,%sp)
-; x00-NEXT:  bcs
+; x00-NEXT:  bcc
 define i1 @func2(i32 %v1, i32 %v2) nounwind {
 entry:
   %t = call {i32, i1} @llvm.usub.with.overflow.i32(i32 %v1, i32 %v2)
