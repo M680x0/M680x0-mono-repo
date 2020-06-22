@@ -30,6 +30,8 @@
 
 using namespace llvm;
 
+#define DEBUG_TYPE "m68k-mc-inst-lower"
+
 M680x0MCInstLower::M680x0MCInstLower(MachineFunction &MF, M680x0AsmPrinter &AP)
     : Ctx(MF.getContext()), MF(MF), TM(MF.getTarget()), MAI(*TM.getMCAsmInfo()),
       AsmPrinter(AP) {}
@@ -110,7 +112,7 @@ M680x0MCInstLower::LowerOperand(const MachineInstr *MI,
                                 const MachineOperand &MO) const {
   switch (MO.getType()) {
   default:
-    MI->dump();
+    LLVM_DEBUG(MI->dump());
     llvm_unreachable("unknown operand type");
   case MachineOperand::MO_Register:
     // Ignore all implicit register operands.
