@@ -25,4 +25,6 @@ Target llvm::TheM680x0Target;
 extern "C" void LLVMInitializeM680x0TargetInfo() {
   RegisterTarget<Triple::m680x0, /*HasJIT=*/true> X(
       TheM680x0Target, "m680x0", "Motorola 68000 family", "M680x0");
+  RegisterTarget<Triple::m68k, /*HasJIT=*/true> K(
+      TheM680x0Target, "m68k", "Motorola 68000 family", "M680x0");
 }
