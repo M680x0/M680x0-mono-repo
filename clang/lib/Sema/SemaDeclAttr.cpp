@@ -6029,7 +6029,6 @@ static void handleInterruptAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
     handleMipsInterruptAttr(S, D, AL);
     break;
   case llvm::Triple::m680x0:
-  case llvm::Triple::m68k:
     handleM680x0InterruptAttr(S, D, AL);
     break;
   case llvm::Triple::x86:

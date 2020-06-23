@@ -72,7 +72,6 @@ StringRef Triple::getArchTypeName(ArchType Kind) {
   case wasm32:         return "wasm32";
   case wasm64:         return "wasm64";
   case m680x0:         return "m680x0";
-  case m68k:           return "m68k";
   case x86:            return "i386";
   case x86_64:         return "x86_64";
   case xcore:          return "xcore";
@@ -152,8 +151,7 @@ StringRef Triple::getArchTypePrefix(ArchType Kind) {
   case riscv64:     return "riscv";
 
   case ve:          return "ve";
-  case m68k:
-  case m680x0:     return "m68k";
+  case m680x0:      return "m68k";
   }
 }
 
@@ -325,7 +323,6 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("renderscript64", renderscript64)
     .Case("ve", ve)
     .Case("m680x0", m680x0)
-    .Case("m68k", m68k)
     .Default(UnknownArch);
 }
 
@@ -425,8 +422,7 @@ static Triple::ArchType parseArch(StringRef ArchName) {
            "mips64r6", "mipsn32r6", Triple::mips64)
     .Cases("mips64el", "mipsn32el", "mipsisa64r6el", "mips64r6el",
            "mipsn32r6el", Triple::mips64el)
-    .Case("m680x0", Triple::m680x0)
-    .Case("m68k", Triple::m68k)
+    .Cases("m680x0", "m68k", Triple::m680x0)
     .Case("r600", Triple::r600)
     .Case("amdgcn", Triple::amdgcn)
     .Case("riscv32", Triple::riscv32)
@@ -672,8 +668,6 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::thumb:
   case Triple::x86:
   case Triple::x86_64:
-  case Triple::m680x0:
-  case Triple::m68k:
     if (T.isOSDarwin())
       return Triple::MachO;
     else if (T.isOSWindows())
@@ -696,6 +690,7 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::lanai:
   case Triple::le32:
   case Triple::le64:
+  case Triple::m680x0:
   case Triple::mips64:
   case Triple::mips64el:
   case Triple::mips:
@@ -1276,7 +1271,6 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::xcore:
   case llvm::Triple::wasm32:
   case llvm::Triple::m680x0:
-  case llvm::Triple::m68k:
     return 32;
 
   case llvm::Triple::aarch64:
@@ -1361,7 +1355,6 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::x86:
   case Triple::xcore:
   case Triple::m680x0:
-  case Triple::m68k:
     // Already 32-bit.
     break;
 
@@ -1401,7 +1394,6 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::tcele:
   case Triple::xcore:
   case Triple::m680x0:
-  case Triple::m68k:
     T.setArch(UnknownArch);
     break;
 
@@ -1518,7 +1510,6 @@ Triple Triple::getLittleEndianArchVariant() const {
   case Triple::sparcv9:
   case Triple::systemz:
   case Triple::m680x0:
-  case Triple::m68k:
 
   // ARM is intentionally unsupported here, changing the architecture would
   // drop any arch suffixes.
