@@ -2042,6 +2042,10 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
       "i686-linux-android",   "i386-gnu",              "i486-gnu",
       "i586-gnu",             "i686-gnu"};
 
+  static const char *const M680x0LibDirs[] = {"/lib"};
+  static const char *const M680x0Triples[] = {
+       "m68k-linux-gnu", "m68k-unknown-linux-gnu", "m68k-suse-linux"};
+
   static const char *const MIPSLibDirs[] = {"/lib"};
   static const char *const MIPSTriples[] = {
       "mips-linux-gnu", "mips-mti-linux", "mips-mti-linux-gnu",
@@ -2274,6 +2278,10 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
       BiarchLibDirs.append(begin(X86_64LibDirs), end(X86_64LibDirs));
       BiarchTripleAliases.append(begin(X86_64Triples), end(X86_64Triples));
     }
+    break;
+  case llvm::Triple::m680x0:
+    LibDirs.append(begin(M680x0LibDirs), end(M680x0LibDirs));
+    TripleAliases.append(begin(M680x0Triples), end(M680x0Triples));
     break;
   case llvm::Triple::mips:
     LibDirs.append(begin(MIPSLibDirs), end(MIPSLibDirs));
