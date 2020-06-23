@@ -304,8 +304,14 @@ TargetInfo *AllocateTarget(const llvm::Triple &Triple,
     }
 
   case llvm::Triple::m680x0:
-  case llvm::Triple::m68k:
-    return new M680x0TargetInfo(Triple, Opts);
+    switch (os) {
+    case llvm::Triple::Linux:
+      return new LinuxTargetInfo<M680x0TargetInfo>(Triple, Opts);
+    case llvm::Triple::NetBSD:
+      return new NetBSDTargetInfo<M680x0TargetInfo>(Triple, Opts);
+    default:
+      return new M680x0TargetInfo(Triple, Opts);
+    }
 
   case llvm::Triple::le32:
     switch (os) {
