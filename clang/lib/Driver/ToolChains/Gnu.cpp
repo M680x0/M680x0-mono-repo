@@ -270,6 +270,8 @@ static const char *getLDMOption(const llvm::Triple &T, const ArgList &Args) {
   case llvm::Triple::armeb:
   case llvm::Triple::thumbeb:
     return isArmBigEndian(T, Args) ? "armelfb_linux_eabi" : "armelf_linux_eabi";
+  case llvm::Triple::m680x0:
+    return "m68kelf";
   case llvm::Triple::ppc:
     return "elf32ppclinux";
   case llvm::Triple::ppc64:
