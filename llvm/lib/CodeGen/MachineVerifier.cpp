@@ -1645,8 +1645,7 @@ MachineVerifier::visitMachineOperand(const MachineOperand *MO, unsigned MONum) {
       if (MCOI.OperandType == MCOI::OPERAND_REGISTER &&
           !MO->isReg() && !MO->isFI())
         report("Expected a register operand.", MO, MONum);
-      if ((MCOI.OperandType == MCOI::OPERAND_IMMEDIATE ||
-           MCOI.OperandType == MCOI::OPERAND_PCREL) && MO->isReg())
+      if (MCOI.OperandType == MCOI::OPERAND_IMMEDIATE && MO->isReg())
         report("Expected a non-register operand.", MO, MONum);
     }
 
