@@ -935,6 +935,19 @@ public:
     llvm_unreachable("Target didn't implement TargetInstrInfo::copyPhysReg!");
   }
 
+  /// Allow targets to tell MachineVerifier whether specific register
+  /// MachineOperand can be pc-relative.
+  /// PC-relative addressing modes in many CISC architectures contain
+  /// (non-pc) register as offset or scaling values. Which inherently
+  /// tags the corresponding MachineOperand with OPERAND_PCREL.
+  ///
+  /// @param MO  The MachineOperand in question. MO.isReg() should always
+  /// be true.
+  /// @return Whether this operand is allowed to be pc-relative.
+  virtual bool isRegisterOperandPCRel(const MachineOperand &MO) const {
+    return false;
+  }
+
 protected:
   /// Target-dependent implementation for IsCopyInstr.
   /// If the specific machine instruction is a instruction that moves/copies
