@@ -632,6 +632,11 @@ class Instruction : InstructionEncoding {
   /// by TableGen.
   bit UseNamedOperandTable = 0;
 
+  /// UseLogicalOperandMappings - If set, several helper functions would be
+  /// generated for this instruction to map properties like index, type of
+  /// its logical operands to corresponding MI operands.
+  bit UseLogicalOperandMappings = 0;
+
   /// Should FastISel ignore this instruction. For certain ISAs, they have
   /// instructions which map to the same ISD Opcode, value type operands and
   /// instruction selection predicates. FastISel cannot handle such cases, but
