@@ -23,6 +23,7 @@ enum ActionType {
   PrintRecords,
   DumpJSON,
   GenEmitter,
+  GenCodeBeads,
   GenRegisterInfo,
   GenInstrInfo,
   GenInstrDocs,
@@ -78,6 +79,8 @@ cl::opt<ActionType> Action(
         clEnumValN(DumpJSON, "dump-json",
                    "Dump all records as machine-readable JSON"),
         clEnumValN(GenEmitter, "gen-emitter", "Generate machine code emitter"),
+        clEnumValN(GenCodeBeads, "gen-code-beads",
+                   "Generate machine code beads"),
         clEnumValN(GenRegisterInfo, "gen-register-info",
                    "Generate registers and register classes info"),
         clEnumValN(GenInstrInfo, "gen-instr-info",
@@ -157,6 +160,9 @@ bool LLVMTableGenMain(raw_ostream &OS, RecordKeeper &Records) {
     break;
   case GenEmitter:
     EmitCodeEmitter(Records, OS);
+    break;
+  case GenCodeBeads:
+    EmitCodeBeads(Records, OS);
     break;
   case GenRegisterInfo:
     EmitRegisterInfo(Records, OS);
