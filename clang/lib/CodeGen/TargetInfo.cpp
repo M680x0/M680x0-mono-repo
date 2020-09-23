@@ -8065,6 +8065,46 @@ MIPSTargetCodeGenInfo::initDwarfEHRegSizeTable(CodeGen::CodeGenFunction &CGF,
 }
 
 //===----------------------------------------------------------------------===//
+// M680x0 ABI Implementation
+//===----------------------------------------------------------------------===//
+
+namespace {
+
+class M680x0TargetCodeGenInfo : public TargetCodeGenInfo {
+public:
+  M680x0TargetCodeGenInfo(CodeGenTypes &CGT)
+    : TargetCodeGenInfo(std::make_unique<DefaultABIInfo>(CGT)) {}
+  void setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
+                           CodeGen::CodeGenModule &M) const override;
+};
+
+}
+
+// TODO Does not actually work right now
+void M680x0TargetCodeGenInfo::
+setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
+                    CodeGen::CodeGenModule &M) const {
+  if (const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D)) {
+    if (const M680x0InterruptAttr *attr = FD->getAttr<M680x0InterruptAttr>()) {
+      // Handle 'interrupt' attribute:
+      llvm::Function *F = cast<llvm::Function>(GV);
+
+      // Step 1: Set ISR calling convention.
+      F->setCallingConv(llvm::CallingConv::M680x0_INTR);
+
+      // Step 2: Add attributes goodness.
+      F->addFnAttr(llvm::Attribute::NoInline);
+
+      // ??? is this right
+      // Step 3: Emit ISR vector alias.
+      unsigned Num = attr->getNumber() / 2;
+      llvm::GlobalAlias::create(llvm::Function::ExternalLinkage,
+                                "__isr_" + Twine(Num), F);
+    }
+  }
+}
+
+//===----------------------------------------------------------------------===//
 // AVR ABI Implementation.
 //===----------------------------------------------------------------------===//
 
