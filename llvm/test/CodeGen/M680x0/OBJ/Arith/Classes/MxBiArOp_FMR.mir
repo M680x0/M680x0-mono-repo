@@ -1,0 +1,73 @@
+# RUN: llc %s -mtriple=m680x0 -start-after=prologepilog -O0 -filetype=obj -o - \
+# RUN:  | extract-section .text                                                \
+# RUN:  | FileCheck %s -check-prefixes=ADD8fd,ADD32fd,ADD8pd,ADD32pd,ADD8jd,ADD32jd
+
+#------------------------------------------------------------------------------
+# MxBiArOp_FMR class used for binary arithmetic operations and operates on
+# register and memory; the result is store to memory. It uses MxArithEncoding
+# encoding class and MxOpModeEAd opmode class.
+#------------------------------------------------------------------------------
+
+--- # ARII
+#               ---------------+-----------+-----------+-----------+-----------
+#                F   E   D   C | B   A   9 | 8   7   6 | 5   4   3 | 2   1   0
+#               ---------------+-----------+-----------+-----------+-----------
+#       OPWORD   x   x   x   x |    REG    |   OPMODE  |    MODE   |    REG
+#               ---------------+-----------+-----------+-----------+-----------
+# ADD8fd:        1   1   0   1   0   0   0   1 . 0   0   1   1   0   0   0   0
+# ADD8fd-SAME:   0   0   0   1   1   0   0   0 . 0   0   0   0   0   0   0   0
+#               ---------------------------------------------------------------
+# ADD8fd-SAME:   1   1   0   1   0   0   0   1 . 0   0   1   1   0   0   0   0
+# ADD8fd-SAME:   0   0   0   1   1   0   0   0 . 1   1   1   1   1   1   1   1
+#               ---------------------------------------------------------------
+# ADD32fd-SAME:  1   1   0   1   0   0   0   1 . 1   0   1   1   0   0   0   1
+# ADD32fd-SAME:  0   0   0   1   1   0   0   0 . 0   0   0   0   0   0   0   0
+#               ---------------------------------------------------------------
+# ADD32fd-SAME:  1   1   0   1   0   0   1   1 . 1   0   1   1   0   0   1   0
+# ADD32fd-SAME:  1   0   1   0   1   0   0   0 . 0   0   0   0   0   0   0   0
+#               ---+-----------+---+-------+---+-------------------------------
+#        BRIEF  DA |    REG    | L | SCALE | 0 |          DISPLACEMENT
+#               ---+-----------+---+-------+---+-------------------------------
+name: MxBiArOp_FMR_ARII
+body: |
+  bb.0:
+    ADD8fd  0,  $a0, $d1, $bd0, implicit-def $ccr
+    ADD8fd  -1, $a0, $d1, $bd0, implicit-def $ccr
+    ADD32fd 0,  $a1, $d1,  $d0, implicit-def $ccr
+    ADD32fd 0,  $a2, $a2,  $d1, implicit-def $ccr
+
+...
+--- # ARID
+#               ---------------+-----------+-----------+-----------+-----------
+#                F   E   D   C | B   A   9 | 8   7   6 | 5   4   3 | 2   1   0
+#               ---------------+-----------+-----------+-----------+-----------
+#       OPWORD   x   x   x   x |    REG    |   OPMODE  |    MODE   |    REG
+#               ---------------+-----------+-----------+-----------+-----------
+# ADD8pd-SAME:   1   1   0   1   0   0   0   1 . 0   0   1   0   1   0   0   0
+# ADD8pd-SAME:   0   0   0   0   0   0   0   0 . 0   0   0   0   0   0   0   0
+#               ---------------------------------------------------------------
+# ADD32pd-SAME:  1   1   0   1   0   0   0   1 . 1   0   1   0   1   0   0   1
+# ADD32pd-SAME:  1   1   1   1   1   1   1   1 . 1   1   1   1   1   1   1   1
+name: MxBiArOp_FMR_ARID
+body: |
+  bb.0:
+    ADD8pd  0,  $a0, $bd0, implicit-def $ccr
+    ADD32pd -1, $a1,  $d0, implicit-def $ccr
+
+...
+--- # ARI
+#               ---------------+-----------+-----------+-----------+-----------
+#                F   E   D   C | B   A   9 | 8   7   6 | 5   4   3 | 2   1   0
+#               ---------------+-----------+-----------+-----------+-----------
+#       OPWORD   x   x   x   x |    REG    |   OPMODE  |    MODE   |    REG
+#               ---------------+-----------+-----------+-----------+-----------
+# ADD8jd-SAME:   1   1   0   1   0   0   0   1 . 0   0   0   1   0   0   0   0
+#               ---------------------------------------------------------------
+# ADD32jd-SAME:  1   1   0   1   0   1   1   1 . 1   0   0   1   0   0   0   1
+name: MxBiArOp_FMR_ARI
+body: |
+  bb.0:
+    ADD8jd  $a0, $bd0, implicit-def $ccr
+    ADD32jd $a1,  $d3, implicit-def $ccr
+
+...
