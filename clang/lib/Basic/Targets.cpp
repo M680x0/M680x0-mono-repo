@@ -22,6 +22,7 @@
 #include "Targets/Hexagon.h"
 #include "Targets/Lanai.h"
 #include "Targets/Le64.h"
+#include "Targets/M680x0.h"
 #include "Targets/MSP430.h"
 #include "Targets/Mips.h"
 #include "Targets/NVPTX.h"
@@ -301,6 +302,16 @@ TargetInfo *AllocateTarget(const llvm::Triple &Triple,
       return new OpenBSDTargetInfo<MipsTargetInfo>(Triple, Opts);
     default:
       return new MipsTargetInfo(Triple, Opts);
+    }
+
+  case llvm::Triple::m680x0:
+    switch (os) {
+    case llvm::Triple::Linux:
+      return new LinuxTargetInfo<M680x0TargetInfo>(Triple, Opts);
+    case llvm::Triple::NetBSD:
+      return new NetBSDTargetInfo<M680x0TargetInfo>(Triple, Opts);
+    default:
+      return new M680x0TargetInfo(Triple, Opts);
     }
 
   case llvm::Triple::le32:
