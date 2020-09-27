@@ -281,7 +281,7 @@ public:
 
   /// Return the minimum required alignment in bytes for a spill slot for
   /// a register of this class.
-  virtual unsigned getSpillAlignment(const TargetRegisterClass &RC) const {
+  unsigned getSpillAlignment(const TargetRegisterClass &RC) const {
     return getRegClassInfo(RC).SpillAlignment / 8;
   }
 
