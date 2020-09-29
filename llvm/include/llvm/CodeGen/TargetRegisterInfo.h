@@ -275,7 +275,7 @@ public:
 
   /// Return the size in bytes of the stack slot allocated to hold a spilled
   /// copy of a register from class RC.
-  virtual unsigned getSpillSize(const TargetRegisterClass &RC) const {
+  unsigned getSpillSize(const TargetRegisterClass &RC) const {
     return getRegClassInfo(RC).SpillSize / 8;
   }
 
