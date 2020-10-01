@@ -19,22 +19,22 @@ include "llvm/Target/Target.td"
 //===----------------------------------------------------------------------===//
 
 def FeatureISAx00
-  : SubtargetFeature<"x00", "IsM68000", "true", "Is M68000 ISA supported">;
+  : SubtargetFeature<"x00", "SubtargetKind", "M00", "Is M68000 ISA supported">;
 
 def FeatureISAx10
-  : SubtargetFeature<"x10", "IsM68010", "true", "Is M68010 ISA supported",
+  : SubtargetFeature<"x10", "SubtargetKind", "M10", "Is M68010 ISA supported",
     [ FeatureISAx00 ]>;
 
 def FeatureISAx20
-  : SubtargetFeature<"x20", "IsM68020", "true", "Is M68020 ISA supported",
+  : SubtargetFeature<"x20", "SubtargetKind", "M20", "Is M68020 ISA supported",
     [ FeatureISAx10 ]>;
 
 def FeatureISAx30
-  : SubtargetFeature<"x30", "IsM68030", "true", "Is M68030 ISA supported",
+  : SubtargetFeature<"x30", "SubtargetKind", "M30", "Is M68030 ISA supported",
     [ FeatureISAx20 ]>;
 
 def FeatureISAx40
-  : SubtargetFeature<"x40", "IsM68040", "true", "Is M68040 ISA supported",
+  : SubtargetFeature<"x40", "SubtargetKind", "M40", "Is M68040 ISA supported",
     [ FeatureISAx30 ]>;
 
 //===----------------------------------------------------------------------===//

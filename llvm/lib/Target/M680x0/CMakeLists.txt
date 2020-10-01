@@ -14,7 +14,19 @@ add_public_tablegen_target(M680x0CommonTableGen)
 
 # M680x0CodeGen should match with LLVMBuild.txt M680x0CodeGen
 add_llvm_target(M680x0CodeGen
-  M680x0DummyTargetMachine.cpp
+  M680x0AsmPrinter.cpp
+  M680x0MCInstLower.cpp
+  M680x0FrameLowering.cpp
+  M680x0InstrInfo.cpp
+  M680x0ISelLowering.cpp
+  M680x0ISelDAGToDAG.cpp
+  M680x0ExpandPseudo.cpp
+  M680x0CollapseMOVEMPass.cpp
+  M680x0MachineFunction.cpp
+  M680x0RegisterInfo.cpp
+  M680x0Subtarget.cpp
+  M680x0TargetObjectFile.cpp
+  M680x0TargetMachine.cpp
 )
 
 # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
