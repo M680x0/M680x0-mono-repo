@@ -58,14 +58,13 @@ M680x0TargetInfo::M680x0TargetInfo(const llvm::Triple &Triple,
 
 bool M680x0TargetInfo::setCPU(const std::string &Name) {
   StringRef N = Name;
-  CPU = llvm::StringSwitch<CPUKind>(N.lower())
+  CPU = llvm::StringSwitch<CPUKind>(N)
             .Case("generic", CK_68000)
-            .Case("68000", CK_68000)
-            .Case("68010", CK_68010)
-            .Case("68020", CK_68020)
-            .Case("68030", CK_68030)
-            .Case("68040", CK_68040)
-            .Case("68060", CK_68060)
+            .Case("M68000", CK_68000)
+            .Case("M68010", CK_68010)
+            .Case("M68020", CK_68020)
+            .Case("M68030", CK_68030)
+            .Case("M68040", CK_68040)
             .Default(CK_Unknown);
   return CPU != CK_Unknown;
 }
@@ -97,9 +96,6 @@ void M680x0TargetInfo::getTargetDefines(const LangOptions &Opts,
     break;
   case CK_68040:
     RawDef = "mc68040";
-    break;
-  case CK_68060:
-    RawDef = "mc68060";
     break;
   default:
     RawDef = "";

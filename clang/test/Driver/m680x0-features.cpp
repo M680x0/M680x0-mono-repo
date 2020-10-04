@@ -35,11 +35,3 @@
 // CHECK-MX40: #define __mc68040__ 1
 // CHECK-MX40: #define mc68000 1
 // CHECK-MX40: #define mc68040 1
-
-// RUN: %clang -target m680x0-unknown-linux -m68060 -dM -E %s | FileCheck --check-prefix=CHECK-MX60 %s
-// CHECK-MX60: #define __mc68000 1
-// CHECK-MX60: #define __mc68000__ 1
-// CHECK-MX60: #define __mc68060 1
-// CHECK-MX60: #define __mc68060__ 1
-// CHECK-MX60: #define mc68000 1
-// CHECK-MX60: #define mc68060 1

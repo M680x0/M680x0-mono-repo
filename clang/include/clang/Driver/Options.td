@@ -3121,7 +3121,7 @@ def mno_nvs : Flag<["-"], "mno-nvs">, Group<m_hexagon_Features_Group>,
   Flags<[CC1Option]>, HelpText<"Disable generation of new-value stores">;
 
 // M680x0 features flags
-foreach i = {0-4,6} in
+foreach i = {0-4} in
   def m680#i#0 : Flag<["-"], "m680"#i#"0">, Group<m_m680x0_Features_Group>;
 
 // X86 feature flags

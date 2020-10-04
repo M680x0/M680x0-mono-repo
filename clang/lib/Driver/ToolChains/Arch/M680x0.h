@@ -29,7 +29,6 @@ enum class FloatABI {
 FloatABI getM680x0FloatABI(const Driver &D, const llvm::opt::ArgList &Args);
 
 std::string getM680x0TargetCPU(const llvm::opt::ArgList &Args);
-const char *getM680x0AsmModeForCPU(StringRef Name);
 
 void getM680x0TargetFeatures(const Driver &D, const llvm::Triple &Triple,
                              const llvm::opt::ArgList &Args,

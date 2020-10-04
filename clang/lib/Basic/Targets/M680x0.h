@@ -31,8 +31,8 @@ class LLVM_LIBRARY_VISIBILITY M680x0TargetInfo : public TargetInfo {
     CK_68010,
     CK_68020,
     CK_68030,
-    CK_68040,
-    CK_68060
+    CK_68040
+    //CK_68060
   } CPU = CK_Unknown;
 
 public:
