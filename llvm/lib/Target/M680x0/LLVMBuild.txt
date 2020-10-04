@@ -35,5 +35,4 @@ required_libraries =
                      Support
                      Analysis
                      Target
-
 add_to_library_groups = M680x0

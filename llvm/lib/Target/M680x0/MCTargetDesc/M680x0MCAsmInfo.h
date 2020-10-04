@@ -1,9 +1,8 @@
 //===-- M680x0MCAsmInfo.h - M680x0 Asm Info --------------------*- C++ -*--===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -18,14 +17,14 @@
 #include "llvm/MC/MCAsmInfoELF.h"
 
 namespace llvm {
-  class Triple;
+class Triple;
 
-  class M680x0ELFMCAsmInfo : public MCAsmInfoELF {
-    void anchor() override;
+class M680x0ELFMCAsmInfo : public MCAsmInfoELF {
+  void anchor() override;
 
-  public:
-    explicit M680x0ELFMCAsmInfo(const Triple &Triple);
-  };
+public:
+  explicit M680x0ELFMCAsmInfo(const Triple &Triple);
+};
 
 } // namespace llvm
 

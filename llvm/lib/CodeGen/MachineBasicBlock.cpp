@@ -1335,11 +1335,11 @@ MachineBasicBlock::findDebugLoc(instr_iterator MBBI) {
     return MBBI->getDebugLoc();
   return {};
 }
-DebugLoc
-MachineBasicBlock::rfindDebugLoc(reverse_instr_iterator MBBI) {
+DebugLoc MachineBasicBlock::rfindDebugLoc(reverse_instr_iterator MBBI) {
   // Skip debug declarations, we don't want a DebugLoc from them.
   MBBI = skipDebugInstructionsBackward(MBBI, instr_rbegin());
-  if (!MBBI->isDebugInstr()) return MBBI->getDebugLoc();
+  if (!MBBI->isDebugInstr())
+    return MBBI->getDebugLoc();
   return {};
 }
 

@@ -1,9 +1,8 @@
 //===-- M680x0ISelLowering.cpp - M680x0 DAG Lowering Impl ------*- C++ -*--===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -13,8 +12,8 @@
 ///
 //===----------------------------------------------------------------------===//
 
-#include "M680x0CallingConv.h"
 #include "M680x0ISelLowering.h"
+#include "M680x0CallingConv.h"
 #include "M680x0MachineFunction.h"
 #include "M680x0Subtarget.h"
 #include "M680x0TargetMachine.h"
@@ -56,7 +55,7 @@ M680x0TargetLowering::M680x0TargetLowering(const M680x0TargetMachine &TM,
   setStackPointerRegisterToSaveRestore(RegInfo->getStackRegister());
 
   // TODO: computeRegisterInfo should able to infer this info
-  //ValueTypeActions.setTypeAction(MVT::i64, TypeExpandInteger);
+  // ValueTypeActions.setTypeAction(MVT::i64, TypeExpandInteger);
 
   // NOTE The stuff that follows is true for M68000
 
@@ -216,11 +215,10 @@ static SDValue CreateCopyOfByValArgument(SDValue Src, SDValue Dst,
                                          SelectionDAG &DAG, const SDLoc &DL) {
   SDValue SizeNode = DAG.getConstant(Flags.getByValSize(), DL, MVT::i32);
 
-  return DAG.getMemcpy(Chain, DL, Dst, Src, SizeNode,
-                       Flags.getNonZeroByValAlign(),
-                       /*isVolatile*/ false, /*AlwaysInline=*/true,
-                       /*isTailCall*/ false, MachinePointerInfo(),
-                       MachinePointerInfo());
+  return DAG.getMemcpy(
+      Chain, DL, Dst, Src, SizeNode, Flags.getNonZeroByValAlign(),
+      /*isVolatile*/ false, /*AlwaysInline=*/true,
+      /*isTailCall*/ false, MachinePointerInfo(), MachinePointerInfo());
 }
 
 /// Return true if the calling convention is one that we can guarantee TCO for.
@@ -418,10 +416,10 @@ SDValue M680x0TargetLowering::LowerMemArgument(
   //   1);
   // }
 
-  // FIXME #15 For now, all byval parameter objects are marked mutable. This can be
-  // changed with more analysis.
-  // In case of tail call optimization mark all arguments mutable. Since they
-  // could be overwritten by lowering of arguments in case of a tail call.
+  // FIXME #15 For now, all byval parameter objects are marked mutable. This can
+  // be changed with more analysis. In case of tail call optimization mark all
+  // arguments mutable. Since they could be overwritten by lowering of arguments
+  // in case of a tail call.
   bool AlwaysUseMutable = shouldGuaranteeTCO(
       CallConv, DAG.getTarget().Options.GuaranteedTailCallOpt);
   bool isImmutable = !AlwaysUseMutable && !Flags.isByVal();
@@ -2282,8 +2280,7 @@ SDValue M680x0TargetLowering::LowerSELECT(SDValue Op, SelectionDAG &DAG) const {
 
     bool IllegalFPCMov = false;
 
-    if ((isM680x0LogicalCmp(Cmp) && !IllegalFPCMov) ||
-        Opc == M680x0ISD::BT) {
+    if ((isM680x0LogicalCmp(Cmp) && !IllegalFPCMov) || Opc == M680x0ISD::BT) {
       Cond = Cmp;
       addTest = false;
     }

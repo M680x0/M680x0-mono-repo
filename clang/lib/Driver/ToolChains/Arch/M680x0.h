@@ -1,4 +1,4 @@
-//===--- M680x0.h - M680x0-specific Tool Helpers ----------------------*- C++ -*-===//
+//===--- M680x0.h - M680x0-specific Tool Helpers -----------------*- C++-*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -32,11 +32,11 @@ std::string getM680x0TargetCPU(const llvm::opt::ArgList &Args);
 const char *getM680x0AsmModeForCPU(StringRef Name);
 
 void getM680x0TargetFeatures(const Driver &D, const llvm::Triple &Triple,
-                          const llvm::opt::ArgList &Args,
-                          std::vector<llvm::StringRef> &Features);
+                             const llvm::opt::ArgList &Args,
+                             std::vector<llvm::StringRef> &Features);
 
 } // end namespace m680x0
-} // end namespace target
+} // namespace tools
 } // end namespace driver
 } // end namespace clang
 

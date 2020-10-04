@@ -1,9 +1,8 @@
 //===-- M680x0RegisterInfo.cpp - CPU0 Register Information -----*- C++ -*--===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -45,9 +44,7 @@ void M680x0RegisterInfo::anchor() {}
 M680x0RegisterInfo::M680x0RegisterInfo(const M680x0Subtarget &ST)
     // FIXME x26 not sure it this the correct value, it expects RA, but M680x0
     // passes IP anyway, how this works?
-    : M680x0GenRegisterInfo(M680x0::A0,
-                            0, 0, M680x0::PC),
-      Subtarget(ST) {
+    : M680x0GenRegisterInfo(M680x0::A0, 0, 0, M680x0::PC), Subtarget(ST) {
   StackPtr = M680x0::SP;
   FramePtr = M680x0::A6;
   GlobalBasePtr = M680x0::A5;
@@ -85,7 +82,8 @@ M680x0RegisterInfo::getMatchingMegaReg(unsigned Reg,
 
 const TargetRegisterClass *
 M680x0RegisterInfo::getMaximalPhysRegClass(unsigned reg, MVT VT) const {
-  assert(Register::isPhysicalRegister(reg) && "reg must be a physical register");
+  assert(Register::isPhysicalRegister(reg) &&
+         "reg must be a physical register");
 
   // Pick the most sub register class of the right type that contains
   // this physreg.

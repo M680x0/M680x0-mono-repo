@@ -1,9 +1,8 @@
 //===- M680x0ISelDAGToDAG.cpp - M680x0 Dag to Dag Inst Selector -*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -88,7 +87,8 @@ struct M680x0ISelAddressMode {
   M680x0ISelAddressMode(AddrType AT)
       : AM(AT), BaseType(RegBase), Disp(0), BaseFrameIndex(0), IndexReg(),
         Scale(1), GV(nullptr), CP(nullptr), BlockAddr(nullptr), ES(nullptr),
-        MCSym(nullptr), JT(-1), Alignment(), SymbolFlags(M680x0II::MO_NO_FLAG) {}
+        MCSym(nullptr), JT(-1), Alignment(), SymbolFlags(M680x0II::MO_NO_FLAG) {
+  }
 
   bool hasSymbolicDisplacement() const {
     return GV != nullptr || CP != nullptr || ES != nullptr ||

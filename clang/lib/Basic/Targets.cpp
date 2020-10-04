@@ -22,6 +22,7 @@
 #include "Targets/Hexagon.h"
 #include "Targets/Lanai.h"
 #include "Targets/Le64.h"
+#include "Targets/M680x0.h"
 #include "Targets/MSP430.h"
 #include "Targets/Mips.h"
 #include "Targets/M680x0.h"

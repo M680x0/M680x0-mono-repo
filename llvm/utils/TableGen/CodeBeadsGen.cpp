@@ -1,20 +1,23 @@
-//===- CodeBeadsGen.cpp - Code Beads Generator ------------------------===//
+//===---------- CodeBeadsGen.cpp - Code Beads Generator -------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-// TODO add description
+// CodeBeads are annotations that can be used to represent non-trivial
+// instruction variants. More specifically, complex addressing modes appear in
+// many CISC architectures. Without the help of CodeBeads to embed addressing
+// modes information into Instructions' TG definitions, MC layer might have a
+// hard time finding the right binary encoding for an instruction.
 //===----------------------------------------------------------------------===//
 
 #include "CodeGenTarget.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/TableGenBackend.h"
-#include "llvm/TableGen/Error.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -24,6 +27,7 @@ namespace {
 
 class CodeBeadsGen {
   RecordKeeper &Records;
+
 public:
   CodeBeadsGen(RecordKeeper &R) : Records(R) {}
   void run(raw_ostream &o);
@@ -31,17 +35,17 @@ public:
 
 void CodeBeadsGen::run(raw_ostream &o) {
   CodeGenTarget Target(Records);
-  std::vector<Record*> Insts = Records.getAllDerivedDefinitions("Instruction");
+  std::vector<Record *> Insts = Records.getAllDerivedDefinitions("Instruction");
 
   // For little-endian instruction bit encodings, reverse the bit order
   Target.reverseBitsForLittleEndianEncoding();
 
-  ArrayRef<const CodeGenInstruction*> NumberedInstructions =
-    Target.getInstructionsByEnumValue();
+  ArrayRef<const CodeGenInstruction *> NumberedInstructions =
+      Target.getInstructionsByEnumValue();
 
   // Emit function declaration
-  o << "const uint8_t * " << Target.getName();
-  o << "MCCodeEmitter::getGenInstrBeads(const MCInst &MI) const {\n";
+  o << "const uint8_t * llvm::" << Target.getInstNamespace();
+  o << "::getMCInstrBeads(unsigned Opcode) {\n";
 
   unsigned Length = 192;
   unsigned Size = 8;
@@ -64,12 +68,14 @@ void CodeBeadsGen::run(raw_ostream &o) {
 
     if (!BI->isComplete()) {
       PrintFatalError(R->getLoc(), "Record `" + R->getName() +
-          "', bit field 'Beads' is not complete");
+                                       "', bit field 'Beads' is not complete");
     }
 
     if (BI->getNumBits() > Length) {
-      PrintFatalError(R->getLoc(), "Record `" + R->getName() +
-          "', bit field 'Beads' is too long(maximum: " + std::to_string(Length) + ")");
+      PrintFatalError(R->getLoc(),
+                      "Record `" + R->getName() +
+                          "', bit field 'Beads' is too long(maximum: " +
+                          std::to_string(Length) + ")");
     }
 
     /// Convert to byte array:
@@ -86,24 +92,24 @@ void CodeBeadsGen::run(raw_ostream &o) {
         if (BitInit *B = dyn_cast<BitInit>(BI->getBit(i))) {
           Value |= (uint64_t)B->getValue() << (Shift);
         } else {
-          PrintFatalError(R->getLoc(), "Record `" + R->getName() +
-              "', bit 'Beads[" + std::to_string(i) + "]' is not defined");
+          PrintFatalError(R->getLoc(),
+                          "Record `" + R->getName() + "', bit 'Beads[" +
+                              std::to_string(i) + "]' is not defined");
         }
       }
 
-      if (p) o << ',';
+      if (p)
+        o << ',';
       o << " 0x";
       o.write_hex(Value);
       o << "";
     }
     o << " }," << '\t' << "// " << R->getName() << "\n";
-
   }
   o << "\t{ 0x0 }\n  };\n";
 
   // Emit initial function code
-  o << "  const unsigned opcode = MI.getOpcode();\n"
-    << "  return (uint8_t *)InstBits[opcode];\n"
+  o << "  return (const uint8_t *)InstBits[Opcode];\n"
     << "}\n\n";
 }
 
@@ -116,4 +122,4 @@ void EmitCodeBeads(RecordKeeper &RK, raw_ostream &OS) {
   CodeBeadsGen(RK).run(OS);
 }
 
-} // End llvm namespace
+} // namespace llvm

@@ -9,6 +9,7 @@
 #include "CommonArgs.h"
 #include "Arch/AArch64.h"
 #include "Arch/ARM.h"
+#include "Arch/M680x0.h"
 #include "Arch/Mips.h"
 #include "Arch/M680x0.h"
 #include "Arch/PPC.h"

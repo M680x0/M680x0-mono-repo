@@ -1,9 +1,8 @@
 //===-- M680x0InstrInfo.h - M680x0 Instruction Information ------*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -31,6 +30,8 @@ namespace llvm {
 class M680x0Subtarget;
 
 namespace M680x0 {
+// Forward declaration
+const uint8_t *getMCInstrBeads(unsigned);
 
 // These MUST be kept in sync with codes definitions in M680x0InstrInfo.td
 enum CondCode {
@@ -291,6 +292,8 @@ public:
                             const TargetRegisterInfo *TRI) const override;
 
   bool expandPostRAPseudo(MachineInstr &MI) const override;
+
+  bool isRegisterOperandPCRel(const MachineOperand &MO) const override;
 
   /// Add appropriate SExt nodes
   void AddSExt(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,

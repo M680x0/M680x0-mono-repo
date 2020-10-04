@@ -1,9 +1,8 @@
 //===-- M680x0InstPrinter.h - Convert M680x0 MCInst to asm ------*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -53,17 +52,17 @@ private:
   void printARIDMem(const MCInst *MI, int opNum, raw_ostream &O);
   void printARIIMem(const MCInst *MI, int opNum, raw_ostream &O);
   void printAbsMem(const MCInst *MI, int opNum, raw_ostream &O);
-  void printPCDMem(const MCInst *MI, uint64_t Address,
-                   int opNum, raw_ostream &O);
-  void printPCIMem(const MCInst *MI, uint64_t Address,
-                   int opNum, raw_ostream &O);
+  void printPCDMem(const MCInst *MI, uint64_t Address, int opNum,
+                   raw_ostream &O);
+  void printPCIMem(const MCInst *MI, uint64_t Address, int opNum,
+                   raw_ostream &O);
 
   //===----------------------------------------------------------------------===//
   // Specializations
   //===----------------------------------------------------------------------===//
   //
-  void printPCRelImm(const MCInst *MI, uint64_t Address,
-                     int opNum, raw_ostream &O) {
+  void printPCRelImm(const MCInst *MI, uint64_t Address, int opNum,
+                     raw_ostream &O) {
     printOperand(MI, opNum, O);
   }
 
@@ -137,29 +136,29 @@ private:
     printAbsMem(MI, opNum, O);
   }
 
-  void printPCD8Mem(const MCInst *MI, uint64_t Address,
-                    int opNum, raw_ostream &O) {
+  void printPCD8Mem(const MCInst *MI, uint64_t Address, int opNum,
+                    raw_ostream &O) {
     printPCDMem(MI, Address, opNum, O);
   }
-  void printPCD16Mem(const MCInst *MI, uint64_t Address,
-                     int opNum, raw_ostream &O) {
+  void printPCD16Mem(const MCInst *MI, uint64_t Address, int opNum,
+                     raw_ostream &O) {
     printPCDMem(MI, Address, opNum, O);
   }
-  void printPCD32Mem(const MCInst *MI, uint64_t Address,
-                     int opNum, raw_ostream &O) {
+  void printPCD32Mem(const MCInst *MI, uint64_t Address, int opNum,
+                     raw_ostream &O) {
     printPCDMem(MI, Address, opNum, O);
   }
 
-  void printPCI8Mem(const MCInst *MI, uint64_t Address,
-                    int opNum, raw_ostream &O) {
+  void printPCI8Mem(const MCInst *MI, uint64_t Address, int opNum,
+                    raw_ostream &O) {
     printPCIMem(MI, Address, opNum, O);
   }
-  void printPCI16Mem(const MCInst *MI, uint64_t Address,
-                     int opNum, raw_ostream &O) {
+  void printPCI16Mem(const MCInst *MI, uint64_t Address, int opNum,
+                     raw_ostream &O) {
     printPCIMem(MI, Address, opNum, O);
   }
-  void printPCI32Mem(const MCInst *MI, uint64_t Address,
-                     int opNum, raw_ostream &O) {
+  void printPCI32Mem(const MCInst *MI, uint64_t Address, int opNum,
+                     raw_ostream &O) {
     printPCIMem(MI, Address, opNum, O);
   }
 };

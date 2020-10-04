@@ -1,9 +1,8 @@
 //===-- M680x0BaseInfo.h - Top level definitions for M680X0 MC --*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -245,8 +244,7 @@ static inline bool isAddressRegister(unsigned RegNo) {
   }
 }
 
-static inline
-bool hasMultiMIOperands(unsigned Op, unsigned LogicalOpIdx) {
+static inline bool hasMultiMIOperands(unsigned Op, unsigned LogicalOpIdx) {
   return M680x0::getLogicalOperandSize(Op, LogicalOpIdx) > 1;
 }
 

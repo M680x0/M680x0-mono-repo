@@ -1,4 +1,4 @@
-//===--- M680x0.cpp - M680x0 Helpers for Tools ------------------------*- C++ -*-===//
+//===--- M680x0.cpp - M680x0 Helpers for Tools -------------------*- C++-*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -44,17 +44,17 @@ std::string m680x0::getM680x0TargetCPU(const ArgList &Args) {
         .Default("");
   }
   // FIXME: Throw error when multiple sub-architecture flag exist
-  else if(Args.hasArg(clang::driver::options::OPT_m68000)) {
+  else if (Args.hasArg(clang::driver::options::OPT_m68000)) {
     return "68000";
-  } else if(Args.hasArg(clang::driver::options::OPT_m68010)) {
+  } else if (Args.hasArg(clang::driver::options::OPT_m68010)) {
     return "68010";
-  } else if(Args.hasArg(clang::driver::options::OPT_m68020)) {
+  } else if (Args.hasArg(clang::driver::options::OPT_m68020)) {
     return "68020";
-  } else if(Args.hasArg(clang::driver::options::OPT_m68030)) {
+  } else if (Args.hasArg(clang::driver::options::OPT_m68030)) {
     return "68030";
-  } else if(Args.hasArg(clang::driver::options::OPT_m68040)) {
+  } else if (Args.hasArg(clang::driver::options::OPT_m68040)) {
     return "68040";
-  } else if(Args.hasArg(clang::driver::options::OPT_m68060)) {
+  } else if (Args.hasArg(clang::driver::options::OPT_m68060)) {
     return "68060";
   }
 
@@ -63,26 +63,27 @@ std::string m680x0::getM680x0TargetCPU(const ArgList &Args) {
 
 const char *m680x0::getM680x0AsmModeForCPU(StringRef Name) {
   return llvm::StringSwitch<const char *>(Name)
-        .Case("68000", "-m68000")
-        .Case("68010", "-m68010")
-        .Case("68020", "-m68020")
-        .Case("68030", "-m68030")
-        .Case("68040", "-m68040")
-        .Case("68060", "-m68060")
-        .Default("-many");
+      .Case("68000", "-m68000")
+      .Case("68010", "-m68010")
+      .Case("68020", "-m68020")
+      .Case("68030", "-m68030")
+      .Case("68040", "-m68040")
+      .Case("68060", "-m68060")
+      .Default("-many");
 }
 
-void m680x0::getM680x0TargetFeatures(const Driver &D, const llvm::Triple &Triple,
-                               const ArgList &Args,
-                               std::vector<StringRef> &Features) {
+void m680x0::getM680x0TargetFeatures(const Driver &D,
+                                     const llvm::Triple &Triple,
+                                     const ArgList &Args,
+                                     std::vector<StringRef> &Features) {
 
   m680x0::FloatABI FloatABI = m680x0::getM680x0FloatABI(D, Args);
   if (FloatABI == m680x0::FloatABI::Soft)
     Features.push_back("-hard-float");
-
 }
 
-m680x0::FloatABI m680x0::getM680x0FloatABI(const Driver &D, const ArgList &Args) {
+m680x0::FloatABI m680x0::getM680x0FloatABI(const Driver &D,
+                                           const ArgList &Args) {
   m680x0::FloatABI ABI = m680x0::FloatABI::Invalid;
   if (Arg *A =
           Args.getLastArg(options::OPT_msoft_float, options::OPT_mhard_float)) {

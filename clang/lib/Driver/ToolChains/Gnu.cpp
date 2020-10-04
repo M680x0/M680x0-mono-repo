@@ -2086,7 +2086,7 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
 
   static const char *const M680x0LibDirs[] = {"/lib"};
   static const char *const M680x0Triples[] = {
-       "m68k-linux-gnu", "m68k-unknown-linux-gnu", "m68k-suse-linux"};
+      "m68k-linux-gnu", "m68k-unknown-linux-gnu", "m68k-suse-linux"};
 
   static const char *const MIPSLibDirs[] = {"/lib"};
   static const char *const MIPSTriples[] = {

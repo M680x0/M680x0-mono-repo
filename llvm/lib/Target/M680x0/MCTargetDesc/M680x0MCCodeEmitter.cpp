@@ -1,9 +1,8 @@
 //===-- M680x0MCCodeEmitter.cpp - Convert M680x0 code emitter ---*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -11,8 +10,6 @@
 /// This file contains defintions for M680x0 code emitter.
 ///
 //===----------------------------------------------------------------------===//
-
-#include "M680x0RegisterInfo.h"
 
 #include "MCTargetDesc/M680x0BaseInfo.h"
 #include "MCTargetDesc/M680x0FixupKinds.h"
@@ -28,6 +25,13 @@
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
+
+namespace llvm {
+namespace M680x0 {
+// Forward declarations
+const uint8_t *getMCInstrBeads(unsigned);
+} // end namespace M680x0
+} // end namespace llvm
 
 using namespace llvm;
 
@@ -47,7 +51,9 @@ public:
   ~M680x0MCCodeEmitter() override {}
 
   // TableGen'erated function
-  const uint8_t *getGenInstrBeads(const MCInst &MI) const;
+  const uint8_t *getGenInstrBeads(const MCInst &MI) const {
+    return M680x0::getMCInstrBeads(MI.getOpcode());
+  }
 
   unsigned EncodeBits(unsigned ThisByte, uint8_t Bead, const MCInst &MI,
                       const MCInstrDesc &Desc, uint64_t &Buffer,
@@ -141,8 +147,7 @@ unsigned M680x0MCCodeEmitter::EncodeReg(unsigned ThisByte, uint8_t Bead,
              "PCRel addresses use Alt bead register encoding by default");
       MCO = MI.getOperand(MIOpIdx + M680x0::PCRelIndex);
     } else {
-      MCO =
-          MI.getOperand(MIOpIdx + (Alt ? M680x0::MemIndex : M680x0::MemBase));
+      MCO = MI.getOperand(MIOpIdx + (Alt ? M680x0::MemIndex : M680x0::MemBase));
     }
   } else {
     assert(!Alt && "You cannot use Alt register with a simple operand");
@@ -263,8 +268,7 @@ unsigned M680x0MCCodeEmitter::EncodeImm(unsigned ThisByte, uint8_t Bead,
       assert(!Alt && "You cannot use ALT operand with PCRel");
       MCO = MI.getOperand(MIOpIdx + M680x0::PCRelDisp);
     } else {
-      MCO =
-          MI.getOperand(MIOpIdx + (Alt ? M680x0::MemOuter : M680x0::MemDisp));
+      MCO = MI.getOperand(MIOpIdx + (Alt ? M680x0::MemOuter : M680x0::MemDisp));
     }
 
     if (MCO.isExpr()) {

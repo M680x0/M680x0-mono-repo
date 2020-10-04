@@ -1,9 +1,8 @@
 //===-- M680x0MCTargetDesc.cpp - M680x0 Target Descriptions -----*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -68,12 +67,12 @@ createM680x0MCSubtargetInfo(const Triple &TT, StringRef CPU, StringRef FS) {
       ArchFS = FS;
     }
   }
-  return createM680x0MCSubtargetInfoImpl(TT, CPU, /*TuneCPU*/CPU, ArchFS);
+  return createM680x0MCSubtargetInfoImpl(TT, CPU, /*TuneCPU*/ CPU, ArchFS);
 }
 
 static MCAsmInfo *createM680x0MCAsmInfo(const MCRegisterInfo &MRI,
                                         const Triple &TT,
-                                        const MCTargetOptions& TO) {
+                                        const MCTargetOptions &TO) {
   MCAsmInfo *MAI = new M680x0ELFMCAsmInfo(TT);
 
   // Initialize initial frame state.

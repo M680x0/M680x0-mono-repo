@@ -1,9 +1,8 @@
 //===-- M680x0Subtarget.cpp - M680x0 Subtarget Information ------*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -14,14 +13,14 @@
 
 #include "M680x0Subtarget.h"
 
-#include "M680x0MachineFunction.h"
 #include "M680x0.h"
+#include "M680x0MachineFunction.h"
 #include "M680x0RegisterInfo.h"
 #include "M680x0TargetMachine.h"
 
+#include "llvm/CodeGen/MachineJumpTableInfo.h"
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/Function.h"
-#include "llvm/CodeGen/MachineJumpTableInfo.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -39,38 +38,33 @@ extern bool FixGlobalBaseReg;
 /// Select the M680x0 CPU for the given triple and cpu name.
 static StringRef selectM680x0CPU(Triple TT, StringRef CPU) {
   if (CPU.empty() || CPU == "generic") {
-      CPU = "M68000";
+    CPU = "M68000";
   }
   return CPU;
 }
 
-void M680x0Subtarget::anchor() { }
+void M680x0Subtarget::anchor() {}
 
-M680x0Subtarget::
-M680x0Subtarget(const Triple &TT, StringRef CPU,
-                StringRef FS,
-                const M680x0TargetMachine &TM) :
-  M680x0GenSubtargetInfo(TT, CPU, /*TuneCPU*/ CPU, FS), TM(TM), TSInfo(),
-  InstrInfo(initializeSubtargetDependencies(CPU, TT, FS, TM)),
-  FrameLowering(*this, this->getStackAlignment()),
-  TLInfo(TM, *this), TargetTriple(TT)  {
+M680x0Subtarget::M680x0Subtarget(const Triple &TT, StringRef CPU, StringRef FS,
+                                 const M680x0TargetMachine &TM)
+    : M680x0GenSubtargetInfo(TT, CPU, /*TuneCPU*/ CPU, FS), TM(TM), TSInfo(),
+      InstrInfo(initializeSubtargetDependencies(CPU, TT, FS, TM)),
+      FrameLowering(*this, this->getStackAlignment()), TLInfo(TM, *this),
+      TargetTriple(TT) {}
+
+bool M680x0Subtarget::isPositionIndependent() const {
+  return TM.isPositionIndependent();
 }
 
-bool M680x0Subtarget::
-isPositionIndependent() const { return TM.isPositionIndependent(); }
+bool M680x0Subtarget::isLegalToCallImmediateAddr() const { return true; }
 
-bool M680x0Subtarget::
-isLegalToCallImmediateAddr() const { return true; }
-
-bool M680x0Subtarget::
-abiUsesSoftFloat() const {
-//  return TM->Options.UseSoftFloat;
+bool M680x0Subtarget::abiUsesSoftFloat() const {
+  //  return TM->Options.UseSoftFloat;
   return true;
 }
 
-M680x0Subtarget & M680x0Subtarget::
-initializeSubtargetDependencies(StringRef CPU, Triple TT, StringRef FS,
-                                const M680x0TargetMachine &TM) {
+M680x0Subtarget &M680x0Subtarget::initializeSubtargetDependencies(
+    StringRef CPU, Triple TT, StringRef FS, const M680x0TargetMachine &TM) {
   std::string CPUName = selectM680x0CPU(TT, CPU).str();
 
   // Parse features string.
@@ -85,7 +79,7 @@ initializeSubtargetDependencies(StringRef CPU, Triple TT, StringRef FS,
   // if (StackAlignOverride)
   //   stackAlignment = StackAlignOverride;
   // else
-    stackAlignment = 8;
+  stackAlignment = 8;
 
   return *this;
 }
@@ -137,35 +131,36 @@ unsigned char M680x0Subtarget::classifyBlockAddressReference() const {
   return M680x0II::MO_PC_RELATIVE_ADDRESS;
 }
 
-unsigned char M680x0Subtarget::
-classifyLocalReference(const GlobalValue *GV) const {
+unsigned char
+M680x0Subtarget::classifyLocalReference(const GlobalValue *GV) const {
   switch (TM.getCodeModel()) {
-    default: llvm_unreachable("Unsupported code model");
-    case CodeModel::Small:
-    case CodeModel::Kernel: {
-      return M680x0II::MO_PC_RELATIVE_ADDRESS;
-    }
-    case CodeModel::Medium: {
-      if (isPositionIndependent()) {
-        // On M68020 and better we can fit big any data offset into dips field.
-        if (IsM68020) {
-          return M680x0II::MO_PC_RELATIVE_ADDRESS;
-        }
-        // Otherwise we could check the data size and make sure it will fit into
-        // 16 bit offset. For now we will be conservative and go with @GOTOFF
-        return M680x0II::MO_GOTOFF;
-      } else {
-        if (IsM68020) {
-          return M680x0II::MO_PC_RELATIVE_ADDRESS;
-        }
-        return M680x0II::MO_ABSOLUTE_ADDRESS;
+  default:
+    llvm_unreachable("Unsupported code model");
+  case CodeModel::Small:
+  case CodeModel::Kernel: {
+    return M680x0II::MO_PC_RELATIVE_ADDRESS;
+  }
+  case CodeModel::Medium: {
+    if (isPositionIndependent()) {
+      // On M68020 and better we can fit big any data offset into dips field.
+      if (IsM68020) {
+        return M680x0II::MO_PC_RELATIVE_ADDRESS;
       }
+      // Otherwise we could check the data size and make sure it will fit into
+      // 16 bit offset. For now we will be conservative and go with @GOTOFF
+      return M680x0II::MO_GOTOFF;
+    } else {
+      if (IsM68020) {
+        return M680x0II::MO_PC_RELATIVE_ADDRESS;
+      }
+      return M680x0II::MO_ABSOLUTE_ADDRESS;
     }
+  }
   }
 }
 
-unsigned char M680x0Subtarget::
-classifyExternalReference(const Module &M) const {
+unsigned char
+M680x0Subtarget::classifyExternalReference(const Module &M) const {
   if (TM.shouldAssumeDSOLocal(M, nullptr))
     return classifyLocalReference(nullptr);
 
@@ -176,41 +171,41 @@ classifyExternalReference(const Module &M) const {
   }
 }
 
-unsigned char M680x0Subtarget::
-classifyGlobalReference(const GlobalValue *GV) const {
+unsigned char
+M680x0Subtarget::classifyGlobalReference(const GlobalValue *GV) const {
   return classifyGlobalReference(GV, *GV->getParent());
 }
 
-unsigned char M680x0Subtarget::
-classifyGlobalReference(const GlobalValue *GV, const Module &M) const {
+unsigned char M680x0Subtarget::classifyGlobalReference(const GlobalValue *GV,
+                                                       const Module &M) const {
   if (TM.shouldAssumeDSOLocal(M, GV))
     return classifyLocalReference(GV);
 
   switch (TM.getCodeModel()) {
-    default: llvm_unreachable("Unsupported code model");
-    case CodeModel::Small:
-    case CodeModel::Kernel: {
-      if (isPositionIndependent()) {
-        return M680x0II::MO_GOTPCREL;
-      } else {
+  default:
+    llvm_unreachable("Unsupported code model");
+  case CodeModel::Small:
+  case CodeModel::Kernel: {
+    if (isPositionIndependent()) {
+      return M680x0II::MO_GOTPCREL;
+    } else {
+      return M680x0II::MO_PC_RELATIVE_ADDRESS;
+    }
+  }
+  case CodeModel::Medium: {
+    if (isPositionIndependent()) {
+      return M680x0II::MO_GOTPCREL;
+    } else {
+      if (IsM68020) {
         return M680x0II::MO_PC_RELATIVE_ADDRESS;
       }
+      return M680x0II::MO_ABSOLUTE_ADDRESS;
     }
-    case CodeModel::Medium: {
-      if (isPositionIndependent()) {
-        return M680x0II::MO_GOTPCREL;
-      } else {
-        if (IsM68020) {
-          return M680x0II::MO_PC_RELATIVE_ADDRESS;
-        }
-        return M680x0II::MO_ABSOLUTE_ADDRESS;
-      }
-    }
+  }
   }
 }
 
-unsigned M680x0Subtarget::
-getJumpTableEncoding() const {
+unsigned M680x0Subtarget::getJumpTableEncoding() const {
   if (isPositionIndependent()) {
     // The only time we want to use GOTOFF(used when with EK_Custom32) is when
     // the potential delta between the jump target and table base can be larger
@@ -226,13 +221,14 @@ getJumpTableEncoding() const {
   return MachineJumpTableInfo::EK_BlockAddress;
 }
 
-unsigned char M680x0Subtarget::
-classifyGlobalFunctionReference(const GlobalValue *GV) const {
+unsigned char
+M680x0Subtarget::classifyGlobalFunctionReference(const GlobalValue *GV) const {
   return classifyGlobalFunctionReference(GV, *GV->getParent());
 }
 
-unsigned char M680x0Subtarget::
-classifyGlobalFunctionReference(const GlobalValue *GV, const Module &M) const {
+unsigned char
+M680x0Subtarget::classifyGlobalFunctionReference(const GlobalValue *GV,
+                                                 const Module &M) const {
   // local always use pc-rel referencing
   if (TM.shouldAssumeDSOLocal(M, GV))
     return M680x0II::MO_NO_FLAG;

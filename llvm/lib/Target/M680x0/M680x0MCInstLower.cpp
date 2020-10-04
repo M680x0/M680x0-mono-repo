@@ -1,9 +1,8 @@
 //===-- M680x0MCInstLower.cpp - M680x0 MachineInstr to MCInst ---*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -41,7 +40,7 @@ M680x0MCInstLower::GetSymbolFromOperand(const MachineOperand &MO) const {
   assert((MO.isGlobal() || MO.isSymbol() || MO.isMBB()) &&
          "Isn't a symbol reference");
 
-  const auto& TT = TM.getTargetTriple();
+  const auto &TT = TM.getTargetTriple();
   if (MO.isGlobal() && TT.isOSBinFormatELF())
     return AsmPrinter.getSymbolPreferLocal(*MO.getGlobal());
 

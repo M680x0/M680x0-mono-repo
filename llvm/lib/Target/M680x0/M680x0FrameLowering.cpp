@@ -1,9 +1,8 @@
 //===-- M680x0FrameLowering.cpp - M680x0 Frame Information ------*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -203,7 +202,7 @@ uint64_t
 M680x0FrameLowering::calculateMaxStackAlign(const MachineFunction &MF) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
   uint64_t MaxAlign = MFI.getMaxAlign().value(); // Desired stack alignment.
-  unsigned StackAlign = getStackAlignment(); // ABI alignment
+  unsigned StackAlign = getStackAlignment();     // ABI alignment
   if (MF.getFunction().hasFnAttribute("stackrealign")) {
     if (MFI.hasCalls())
       MaxAlign = (StackAlign > MaxAlign) ? StackAlign : MaxAlign;
@@ -680,9 +679,9 @@ void M680x0FrameLowering::emitPrologue(MachineFunction &MF,
     if (!HasFP && NumBytes) {
       // Define the current CFA rule to use the provided offset.
       assert(StackSize);
-      BuildCFI(MBB, MBBI, DL,
-               MCCFIInstruction::cfiDefCfaOffset(nullptr,
-                                                    -StackSize + stackGrowth));
+      BuildCFI(
+          MBB, MBBI, DL,
+          MCCFIInstruction::cfiDefCfaOffset(nullptr, -StackSize + stackGrowth));
     }
 
     // Emit DWARF info specifying the offsets of the callee-saved registers.
@@ -870,8 +869,7 @@ bool M680x0FrameLowering::assignCalleeSavedSpillSlots(
 
 bool M680x0FrameLowering::spillCalleeSavedRegisters(
     MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
-    ArrayRef<CalleeSavedInfo> CSI,
-    const TargetRegisterInfo *TRI) const {
+    ArrayRef<CalleeSavedInfo> CSI, const TargetRegisterInfo *TRI) const {
   auto &MRI = *static_cast<const M680x0RegisterInfo *>(TRI);
   auto DL = MBB.findDebugLoc(MI);
 

@@ -1,10 +1,8 @@
-//===--- M680x0.cpp - Implement M680x0 targets feature support
-//-------------===//
+//===--- M680x0.cpp - Implement M680x0 targets feature support-------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 //
@@ -58,17 +56,17 @@ M680x0TargetInfo::M680x0TargetInfo(const llvm::Triple &Triple,
   IntPtrType = SignedInt;
 }
 
-bool M680x0TargetInfo::setCPU(const std::string& Name) {
+bool M680x0TargetInfo::setCPU(const std::string &Name) {
   StringRef N = Name;
   CPU = llvm::StringSwitch<CPUKind>(N.lower())
-          .Case("generic", CK_68000)
-          .Case("68000", CK_68000)
-          .Case("68010", CK_68010)
-          .Case("68020", CK_68020)
-          .Case("68030", CK_68030)
-          .Case("68040", CK_68040)
-          .Case("68060", CK_68060)
-          .Default(CK_Unknown);
+            .Case("generic", CK_68000)
+            .Case("68000", CK_68000)
+            .Case("68010", CK_68010)
+            .Case("68020", CK_68020)
+            .Case("68030", CK_68030)
+            .Case("68040", CK_68040)
+            .Case("68060", CK_68060)
+            .Default(CK_Unknown);
   return CPU != CK_Unknown;
 }
 
@@ -86,8 +84,8 @@ void M680x0TargetInfo::getTargetDefines(const LangOptions &Opts,
   Builder.defineMacro("__mc68000__");
 
   // For sub-architecture
-  const char* RawDef = "";
-  switch(CPU) {
+  const char *RawDef = "";
+  switch (CPU) {
   case CK_68010:
     RawDef = "mc68010";
     break;
@@ -106,7 +104,7 @@ void M680x0TargetInfo::getTargetDefines(const LangOptions &Opts,
   default:
     RawDef = "";
   }
-  if(::strlen(RawDef) > 0) {
+  if (::strlen(RawDef) > 0) {
     Builder.defineMacro(RawDef);
     Twine Def = Twine("__") + RawDef;
     Builder.defineMacro(Def);

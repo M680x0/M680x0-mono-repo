@@ -1,9 +1,8 @@
 //===-- M680x0InstrInfo.cpp - M680x0 Instruction Information ----*- C++ -*-===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 ///
@@ -253,7 +252,7 @@ bool M680x0InstrInfo::analyzeBranch(MachineBasicBlock &MBB,
                                     SmallVectorImpl<MachineOperand> &Cond,
                                     bool AllowModify) const {
   // FIXME: This implementation is super buggy, disable for now
-  //return AnalyzeBranchImpl(MBB, TBB, FBB, Cond, AllowModify);
+  // return AnalyzeBranchImpl(MBB, TBB, FBB, Cond, AllowModify);
   return true;
 }
 
@@ -615,6 +614,44 @@ bool M680x0InstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     return Expand2AddrUndef(MIB, get(M680x0::SUBX32dd));
   }
   return false;
+}
+
+bool M680x0InstrInfo::isRegisterOperandPCRel(const MachineOperand &MO) const {
+  assert(MO.isReg());
+  const auto *MI = MO.getParent();
+  const uint8_t *Beads = M680x0::getMCInstrBeads(MI->getOpcode());
+  assert(*Beads);
+
+  // Only addressing mode k has (non-pc) register with PCRel
+  // So we're looking for EA Beads equal to
+  // `3Bits<011>_1Bit<1>_2Bits<11>`
+  // FIXME: There is an important caveat and two assumptions
+  // here: The caveat is that EA encoding always sit on the LSB.
+  // Where the assumptions are that if there are more than one
+  // operands, the EA encoding for the source operand always sit
+  // on the LSB. At the same time, k addressing mode can not be used
+  // on destination operand.
+  // The last assumption is kinda dirty so we need to find a way around
+  // it
+  const uint8_t EncEAk[3] = {0b011, 0b1, 0b11};
+  for (const uint8_t Pat : EncEAk) {
+    uint8_t Bead = *(Beads++);
+    if (!Bead)
+      return false;
+
+    switch (Bead & 0xF) {
+    default:
+      return false;
+    case M680x0Beads::Bits1:
+    case M680x0Beads::Bits2:
+    case M680x0Beads::Bits3: {
+      uint8_t Val = (Bead & 0xF0) >> 4;
+      if (Val != Pat)
+        return false;
+    }
+    }
+  }
+  return true;
 }
 
 void M680x0InstrInfo::copyPhysReg(MachineBasicBlock &MBB,

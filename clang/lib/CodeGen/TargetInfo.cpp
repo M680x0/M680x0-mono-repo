@@ -8073,17 +8073,16 @@ namespace {
 class M680x0TargetCodeGenInfo : public TargetCodeGenInfo {
 public:
   M680x0TargetCodeGenInfo(CodeGenTypes &CGT)
-    : TargetCodeGenInfo(std::make_unique<DefaultABIInfo>(CGT)) {}
+      : TargetCodeGenInfo(std::make_unique<DefaultABIInfo>(CGT)) {}
   void setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
                            CodeGen::CodeGenModule &M) const override;
 };
 
-}
+} // namespace
 
 // TODO Does not actually work right now
-void M680x0TargetCodeGenInfo::
-setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
-                    CodeGen::CodeGenModule &M) const {
+void M680x0TargetCodeGenInfo::setTargetAttributes(
+    const Decl *D, llvm::GlobalValue *GV, CodeGen::CodeGenModule &M) const {
   if (const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D)) {
     if (const M680x0InterruptAttr *attr = FD->getAttr<M680x0InterruptAttr>()) {
       // Handle 'interrupt' attribute:
