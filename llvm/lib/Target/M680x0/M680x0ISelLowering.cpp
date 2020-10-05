@@ -2952,6 +2952,16 @@ const MCExpr *M680x0TargetLowering::getPICJumpTableRelocBaseExpr(
   return MCSymbolRefExpr::create(MF->getJTISymbol(JTI, Ctx), Ctx);
 }
 
+Register M680x0TargetLowering::getExceptionPointerRegister(
+    const Constant *PersonalityFn) const {
+  return M680x0::D0;
+}
+
+Register M680x0TargetLowering::getExceptionSelectorRegister(
+    const Constant *PersonalityFn) const {
+  return M680x0::D1;
+}
+
 /// Determines whether the callee is required to pop its own arguments.
 /// Callee pop is necessary to support tail calls.
 bool M680x0::isCalleePop(CallingConv::ID CallingConv, bool IsVarArg,
