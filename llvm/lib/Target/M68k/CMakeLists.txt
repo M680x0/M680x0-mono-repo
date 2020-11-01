@@ -14,7 +14,19 @@ add_public_tablegen_target(M68kCommonTableGen)
 
 # M68kCodeGen should match with LLVMBuild.txt M68kCodeGen
 add_llvm_target(M68kCodeGen
-  M68kDummyTargetMachine.cpp
+  M68kAsmPrinter.cpp
+  M68kMCInstLower.cpp
+  M68kFrameLowering.cpp
+  M68kInstrInfo.cpp
+  M68kISelLowering.cpp
+  M68kISelDAGToDAG.cpp
+  M68kExpandPseudo.cpp
+  M68kCollapseMOVEMPass.cpp
+  M68kMachineFunction.cpp
+  M68kRegisterInfo.cpp
+  M68kSubtarget.cpp
+  M68kTargetObjectFile.cpp
+  M68kTargetMachine.cpp
 )
 
 # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
