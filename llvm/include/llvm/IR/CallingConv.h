@@ -241,8 +241,8 @@ namespace CallingConv {
     /// The remainder matches the regular calling convention.
     WASM_EmscriptenInvoke = 99,
 
-    /// M680x0_INTR - Calling convention used for M680x0 interrupt routines.
-    M680x0_INTR = 1000,
+    /// M68k_INTR - Calling convention used for M68k interrupt routines.
+    M68k_INTR = 1000,
 
     /// The highest possible calling convention ID. Must be some 2^k - 1.
     MaxID = 1023

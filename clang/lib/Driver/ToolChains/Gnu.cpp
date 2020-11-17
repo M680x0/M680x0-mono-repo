@@ -252,7 +252,7 @@ static const char *getLDMOption(const llvm::Triple &T, const ArgList &Args) {
   case llvm::Triple::armeb:
   case llvm::Triple::thumbeb:
     return isArmBigEndian(T, Args) ? "armelfb_linux_eabi" : "armelf_linux_eabi";
-  case llvm::Triple::m680x0:
+  case llvm::Triple::m68k:
     return "m68kelf";
   case llvm::Triple::ppc:
     return "elf32ppclinux";
@@ -2084,8 +2084,8 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
       "i686-linux-android",   "i386-gnu",              "i486-gnu",
       "i586-gnu",             "i686-gnu"};
 
-  static const char *const M680x0LibDirs[] = {"/lib"};
-  static const char *const M680x0Triples[] = {
+  static const char *const M68kLibDirs[] = {"/lib"};
+  static const char *const M68kTriples[] = {
       "m68k-linux-gnu", "m68k-unknown-linux-gnu", "m68k-suse-linux"};
 
   static const char *const MIPSLibDirs[] = {"/lib"};
@@ -2321,9 +2321,9 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
       BiarchTripleAliases.append(begin(X86_64Triples), end(X86_64Triples));
     }
     break;
-  case llvm::Triple::m680x0:
-    LibDirs.append(begin(M680x0LibDirs), end(M680x0LibDirs));
-    TripleAliases.append(begin(M680x0Triples), end(M680x0Triples));
+  case llvm::Triple::m68k:
+    LibDirs.append(begin(M68kLibDirs), end(M68kLibDirs));
+    TripleAliases.append(begin(M68kTriples), end(M68kTriples));
     break;
   case llvm::Triple::mips:
     LibDirs.append(begin(MIPSLibDirs), end(MIPSLibDirs));
@@ -2711,7 +2711,7 @@ bool Generic_GCC::IsIntegratedAssemblerDefault() const {
   case llvm::Triple::mips64:
   case llvm::Triple::mips64el:
   case llvm::Triple::msp430:
-  case llvm::Triple::m680x0:
+  case llvm::Triple::m68k:
     return true;
   case llvm::Triple::sparc:
   case llvm::Triple::sparcel:

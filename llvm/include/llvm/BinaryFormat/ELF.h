@@ -736,9 +736,9 @@ enum {
 #include "ELFRelocs/BPF.def"
 };
 
-// ELF Relocation types for M680x0
+// ELF Relocation types for M68k
 enum {
-#include "ELFRelocs/m680x0.def"
+#include "ELFRelocs/m68k.def"
 };
 
 // MSP430 specific e_flags

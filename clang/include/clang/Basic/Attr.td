@@ -364,7 +364,7 @@ def TargetBPF : TargetArch<["bpfel", "bpfeb"]>;
 def TargetMips32 : TargetArch<["mips", "mipsel"]>;
 def TargetAnyMips : TargetArch<["mips", "mipsel", "mips64", "mips64el"]>;
 def TargetMSP430 : TargetArch<["msp430"]>;
-def TargetM680x0 : TargetArch<["m680x0"]>;
+def TargetM68k : TargetArch<["m68k"]>;
 def TargetRISCV : TargetArch<["riscv32", "riscv64"]>;
 def TargetX86 : TargetArch<["x86"]>;
 def TargetAnyX86 : TargetArch<["x86", "x86_64"]>;
@@ -1515,7 +1515,7 @@ def MipsShortCall : InheritableAttr, TargetSpecificAttr<TargetAnyMips> {
   let Documentation = [MipsShortCallStyleDocs];
 }
 
-def M680x0Interrupt : InheritableAttr, TargetSpecificAttr<TargetM680x0> {
+def M68kInterrupt : InheritableAttr, TargetSpecificAttr<TargetM68k> {
   // NOTE: If you add any additional spellings, ARMInterrupt's, MipsInterrupt's
   // and AnyX86Interrupt's spellings must match.
   let Spellings = [GNU<"interrupt">];

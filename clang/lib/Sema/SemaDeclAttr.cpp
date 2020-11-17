@@ -5797,7 +5797,7 @@ static void handleMipsInterruptAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   D->addAttr(::new (S.Context) MipsInterruptAttr(S.Context, AL, Kind));
 }
 
-static void handleM680x0InterruptAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
+static void handleM68kInterruptAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   if (!checkAttributeNumArgs(S, AL, 1))
     return;
 
@@ -5826,7 +5826,7 @@ static void handleM680x0InterruptAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
     return;
   }
 
-  D->addAttr(::new (S.Context) M680x0InterruptAttr(S.Context, AL, Num));
+  D->addAttr(::new (S.Context) M68kInterruptAttr(S.Context, AL, Num));
   D->addAttr(UsedAttr::CreateImplicit(S.Context));
 }
 
@@ -6102,8 +6102,8 @@ static void handleInterruptAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   case llvm::Triple::mips:
     handleMipsInterruptAttr(S, D, AL);
     break;
-  case llvm::Triple::m680x0:
-    handleM680x0InterruptAttr(S, D, AL);
+  case llvm::Triple::m68k:
+    handleM68kInterruptAttr(S, D, AL);
     break;
   case llvm::Triple::x86:
   case llvm::Triple::x86_64:

@@ -103,7 +103,7 @@ std::string Linux::getMultiarchTriple(const Driver &D,
       return "aarch64_be-linux-gnu";
     break;
 
-  case llvm::Triple::m680x0:
+  case llvm::Triple::m68k:
     if (D.getVFS().exists(SysRoot + "/lib/m68k-linux-gnu"))
       return "m68k-linux-gnu";
     break;
@@ -478,7 +478,7 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
     Loader = HF ? "ld-linux-armhf.so.3" : "ld-linux.so.3";
     break;
   }
-  case llvm::Triple::m680x0:
+  case llvm::Triple::m68k:
     LibDir = "lib";
     Loader = "ld.so.1";
     break;
@@ -626,7 +626,7 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
       "/usr/include/armeb-linux-gnueabi"};
   const StringRef ARMEBHFMultiarchIncludeDirs[] = {
       "/usr/include/armeb-linux-gnueabihf"};
-  const StringRef M680x0MultiarchIncludeDirs[] = {
+  const StringRef M68kMultiarchIncludeDirs[] = {
       "/usr/include/m68k-linux-gnu"};
   const StringRef MIPSMultiarchIncludeDirs[] = {"/usr/include/mips-linux-gnu"};
   const StringRef MIPSELMultiarchIncludeDirs[] = {
@@ -690,8 +690,8 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     else
       MultiarchIncludeDirs = ARMEBMultiarchIncludeDirs;
     break;
-  case llvm::Triple::m680x0:
-    MultiarchIncludeDirs = M680x0MultiarchIncludeDirs;
+  case llvm::Triple::m68k:
+    MultiarchIncludeDirs = M68kMultiarchIncludeDirs;
     break;
   case llvm::Triple::mips:
     if (getTriple().getSubArch() == llvm::Triple::MipsSubArch_r6)

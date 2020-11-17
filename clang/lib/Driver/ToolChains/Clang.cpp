@@ -10,7 +10,7 @@
 #include "AMDGPU.h"
 #include "Arch/AArch64.h"
 #include "Arch/ARM.h"
-#include "Arch/M680x0.h"
+#include "Arch/M68k.h"
 #include "Arch/Mips.h"
 #include "Arch/PPC.h"
 #include "Arch/RISCV.h"
@@ -375,8 +375,8 @@ static void getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   case llvm::Triple::ve:
     ve::getVETargetFeatures(D, Args, Features);
     break;
-  case llvm::Triple::m680x0:
-    m680x0::getM680x0TargetFeatures(D, Triple, Args, Features);
+  case llvm::Triple::m68k:
+    m68k::getM68kTargetFeatures(D, Triple, Args, Features);
     break;
   }
 

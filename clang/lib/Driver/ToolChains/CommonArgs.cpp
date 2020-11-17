@@ -9,7 +9,7 @@
 #include "CommonArgs.h"
 #include "Arch/AArch64.h"
 #include "Arch/ARM.h"
-#include "Arch/M680x0.h"
+#include "Arch/M68k.h"
 #include "Arch/Mips.h"
 #include "Arch/PPC.h"
 #include "Arch/SystemZ.h"
@@ -293,8 +293,8 @@ std::string tools::getCPUName(const ArgList &Args, const llvm::Triple &T,
     return arm::getARMTargetCPU(MCPU, MArch, T);
   }
 
-  case llvm::Triple::m680x0:
-    return m680x0::getM680x0TargetCPU(Args);
+  case llvm::Triple::m68k:
+    return m68k::getM68kTargetCPU(Args);
 
   case llvm::Triple::avr:
     if (const Arg *A = Args.getLastArg(options::OPT_mmcu_EQ))

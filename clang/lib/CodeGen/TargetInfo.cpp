@@ -8065,14 +8065,14 @@ MIPSTargetCodeGenInfo::initDwarfEHRegSizeTable(CodeGen::CodeGenFunction &CGF,
 }
 
 //===----------------------------------------------------------------------===//
-// M680x0 ABI Implementation
+// M68k ABI Implementation
 //===----------------------------------------------------------------------===//
 
 namespace {
 
-class M680x0TargetCodeGenInfo : public TargetCodeGenInfo {
+class M68kTargetCodeGenInfo : public TargetCodeGenInfo {
 public:
-  M680x0TargetCodeGenInfo(CodeGenTypes &CGT)
+  M68kTargetCodeGenInfo(CodeGenTypes &CGT)
       : TargetCodeGenInfo(std::make_unique<DefaultABIInfo>(CGT)) {}
   void setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
                            CodeGen::CodeGenModule &M) const override;
@@ -8081,15 +8081,15 @@ public:
 } // namespace
 
 // TODO Does not actually work right now
-void M680x0TargetCodeGenInfo::setTargetAttributes(
+void M68kTargetCodeGenInfo::setTargetAttributes(
     const Decl *D, llvm::GlobalValue *GV, CodeGen::CodeGenModule &M) const {
   if (const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D)) {
-    if (const M680x0InterruptAttr *attr = FD->getAttr<M680x0InterruptAttr>()) {
+    if (const M68kInterruptAttr *attr = FD->getAttr<M68kInterruptAttr>()) {
       // Handle 'interrupt' attribute:
       llvm::Function *F = cast<llvm::Function>(GV);
 
       // Step 1: Set ISR calling convention.
-      F->setCallingConv(llvm::CallingConv::M680x0_INTR);
+      F->setCallingConv(llvm::CallingConv::M68k_INTR);
 
       // Step 2: Add attributes goodness.
       F->addFnAttr(llvm::Attribute::NoInline);

@@ -682,7 +682,7 @@ void ScalarEnumerationTraits<ELFYAML::ELF_REL>::enumeration(
 #include "llvm/BinaryFormat/ELFRelocs/PowerPC64.def"
     break;
   case ELF::EM_68K:
-#include "llvm/BinaryFormat/ELFRelocs/m680x0.def"
+#include "llvm/BinaryFormat/ELFRelocs/m68k.def"
     break;
   default:
     // Nothing to do.
