@@ -15,9 +15,14 @@
 
 using namespace llvm;
 
-Target llvm::TheM68kTarget;
+namespace llvm {
+Target &getTheM68kTarget() {
+  static Target TheM68kTarget;
+  return TheM68kTarget;
+}
+}
 
 extern "C" void LLVMInitializeM68kTargetInfo() {
   RegisterTarget<Triple::m68k, /*HasJIT=*/true> X(
-      TheM68kTarget, "m68k", "Motorola 68000 family", "M68k");
+      getTheM68kTarget(), "m68k", "Motorola 68000 family", "M68k");
 }
