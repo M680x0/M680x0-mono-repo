@@ -10,6 +10,7 @@ tablegen(LLVM M68kGenMCPseudoLowering.inc -gen-pseudo-lowering)
 tablegen(LLVM M68kGenDAGISel.inc          -gen-dag-isel)
 tablegen(LLVM M68kGenCallingConv.inc      -gen-callingconv)
 tablegen(LLVM M68kGenAsmWriter.inc        -gen-asm-writer)
+tablegen(LLVM M68kGenDisassemblerTables.inc -gen-disassembler)
 
 # M68kCommonTableGen must be defined
 add_public_tablegen_target(M68kCommonTableGen)
@@ -49,3 +50,4 @@ add_llvm_target(M68kCodeGen
 # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
 add_subdirectory(TargetInfo)
 add_subdirectory(MCTargetDesc)
+add_subdirectory(Disassembler)

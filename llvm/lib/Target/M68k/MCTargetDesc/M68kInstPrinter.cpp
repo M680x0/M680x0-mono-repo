@@ -42,7 +42,7 @@ using namespace llvm;
 #include "M68kGenAsmWriter.inc"
 
 void M68kInstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const {
-  OS << "%" << getRegisterName(RegNo);
+  OS << getRegisterName(RegNo);
 }
 
 void M68kInstPrinter::printInst(const MCInst *MI, uint64_t Address,
@@ -74,13 +74,13 @@ void M68kInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
 void M68kInstPrinter::printImmediate(const MCInst *MI, unsigned opNum,
                                      raw_ostream &O) {
   const MCOperand &MO = MI->getOperand(opNum);
-  if (MO.isImm()) {
-    O << '#' << MO.getImm();
-  } else if (MO.isExpr()) {
-    O << '#';
-    MO.getExpr()->print(O, &MAI);
+  assert(MO.isImm() && "printImmediate requires immediate");
+
+  int64_t Imm = MO.getImm();
+  if (Imm < 10240) {
+    O << '#' << Imm;
   } else {
-    llvm_unreachable("Unknown immediate kind");
+    O << format("#$%0" PRIx64, Imm);
   }
 }
 
@@ -195,26 +195,23 @@ void M68kInstPrinter::printARIIMem(const MCInst *MI, unsigned opNum,
 void M68kInstPrinter::printAbsMem(const MCInst *MI, unsigned opNum,
                                   raw_ostream &O) {
   const MCOperand &MO = MI->getOperand(opNum);
-  if (MO.isImm()) {
-    // ??? Print it in hex?
-    O << (unsigned int)MO.getImm();
-  } else {
-    printOperand(MI, opNum, O);
-  }
+  assert(MO.isImm());
+
+  O << format("$%0" PRIx64, (uint64_t)MO.getImm());
 }
 
 void M68kInstPrinter::printPCDMem(const MCInst *MI, uint64_t Address,
                                   unsigned opNum, raw_ostream &O) {
   O << '(';
   printDisp(MI, opNum + M68k::PCRelDisp, O);
-  O << ",%pc)";
+  O << ",pc)";
 }
 
 void M68kInstPrinter::printPCIMem(const MCInst *MI, uint64_t Address,
                                   unsigned opNum, raw_ostream &O) {
   O << '(';
   printDisp(MI, opNum + M68k::PCRelDisp, O);
-  O << ",%pc,";
+  O << ",pc,";
   printOperand(MI, opNum + M68k::PCRelIndex, O);
   O << ')';
 }
