@@ -14,6 +14,7 @@
 #include "MCTargetDesc/M68kBaseInfo.h"
 #include "MCTargetDesc/M68kFixupKinds.h"
 #include "MCTargetDesc/M68kMCTargetDesc.h"
+#include "MCTargetDesc/M68kMCCodeEmitter.h"
 
 #include "llvm/MC/MCCodeEmitter.h"
 #include "llvm/MC/MCContext.h"
@@ -26,16 +27,12 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
-namespace llvm {
-namespace M68k {
-// Forward declarations
-const uint8_t *getMCInstrBeads(unsigned);
-} // end namespace M68k
-} // end namespace llvm
+#include "M68kGenMCCodeBeads.inc"
 
 using namespace llvm;
 
 #define DEBUG_TYPE "m68k-mccodeemitter"
+
 
 namespace {
 class M68kMCCodeEmitter : public MCCodeEmitter {

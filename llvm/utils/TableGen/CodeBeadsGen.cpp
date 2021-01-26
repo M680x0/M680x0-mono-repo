@@ -50,10 +50,6 @@ void CodeBeadsGen::run(raw_ostream &OS) {
   ArrayRef<const CodeGenInstruction *> NumberedInstructions =
       Target.getInstructionsByEnumValue();
 
-  // Emit function declaration
-  OS << "const uint8_t * llvm::" << Target.getInstNamespace();
-  OS << "::getMCInstrBeads(unsigned Opcode) {\n";
-
   // First, get the maximum bit length among all beads. And do some
   // simple validation
   unsigned MaxBitLength = 0;
@@ -76,13 +72,13 @@ void CodeBeadsGen::run(raw_ostream &OS) {
   unsigned Parts = MaxBitLength / 8;
 
   // Emit instruction base values
-  OS << "  static const uint8_t InstBits[][" << Parts << "] = {\n";
+  OS << "static const uint8_t InstBits[][" << Parts << "] = {\n";
   for (const CodeGenInstruction *CGI : NumberedInstructions) {
     Record *R = CGI->TheDef;
 
     if (R->getValueAsString("Namespace") == "TargetOpcode" ||
         !R->getValue("Beads")) {
-      OS << "\t{ 0x0 },\t// ";
+      OS << "  { 0x0 },  // ";
       if (R->getValueAsBit("isPseudo"))
         OS << "(Pseudo) ";
       OS << R->getName() << "\n";
@@ -93,7 +89,7 @@ void CodeBeadsGen::run(raw_ostream &OS) {
 
     /// Convert to byte array:
     /// [dcba] -> [a][b][c][d]
-    OS << "\t{";
+    OS << "  {";
     for (unsigned p = 0; p < Parts; ++p) {
       unsigned Right = 8 * p;
       unsigned Left = Right + 8;
@@ -116,13 +112,20 @@ void CodeBeadsGen::run(raw_ostream &OS) {
       OS.write_hex(Value);
       OS << "";
     }
-    OS << " }," << '\t' << "// " << R->getName() << "\n";
+    OS << " },  // " << R->getName() << "\n";
   }
-  OS << "\t{ 0x0 }\n  };\n";
+  OS << "  { 0x0 }\n  };\n";
 
-  // Emit initial function code
-  OS << "  return InstBits[Opcode];\n"
-     << "}\n\n";
+  // Emit function declaration
+  OS << "const uint8_t * llvm::" << Target.getInstNamespace()
+      << "::getMCInstrBeads(unsigned Opcode) {\n"
+      << "  return InstBits[Opcode];\n"
+      << "}\n\n";
+
+  OS << "unsigned llvm::" << Target.getInstNamespace()
+      << "::getNumMCInstrBeads() {\n"
+      << "  return (sizeof(InstBits)/sizeof(InstBits[0])) - 1;\n"
+      << "}\n\n";
 }
 
 } // End anonymous namespace

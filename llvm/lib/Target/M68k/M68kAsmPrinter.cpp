@@ -12,39 +12,23 @@
 ///
 //===----------------------------------------------------------------------===//
 
-// TODO #33 make it print Motorola asm
-
 #include "M68kAsmPrinter.h"
 
-#include "M68k.h"
-#include "M68kInstrInfo.h"
 #include "M68kMachineFunction.h"
+#include "TargetInfo/M68kTargetInfo.h"
 
 #include "MCTargetDesc/M68kBaseInfo.h"
 #include "MCTargetDesc/M68kInstPrinter.h"
 
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/ADT/SmallString.h"
-#include "llvm/ADT/StringExtras.h"
-#include "llvm/ADT/Twine.h"
 #include "llvm/CodeGen/MachineConstantPool.h"
-#include "llvm/CodeGen/MachineFrameInfo.h"
-#include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstr.h"
-#include "llvm/CodeGen/MachineMemOperand.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Mangler.h"
-#include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCInst.h"
-#include "llvm/MC/MCInstBuilder.h"
 #include "llvm/MC/MCStreamer.h"
-#include "llvm/MC/MCSymbol.h"
 #include "llvm/Support/TargetRegistry.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
-#include "llvm/Target/TargetOptions.h"
 #include <memory>
 
 using namespace llvm;
