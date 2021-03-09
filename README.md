@@ -1,3 +1,12 @@
+# This Repo Has Been Integrated into Upstream LLVM
+Code is now read-only. If you find any bug, please follow the standard
+[bug reporting process in LLVM](https://llvm.org/docs/HowToSubmitABug.html).
+Please file the bug under the "libraries" > "Backend: M68k" category. This Bugzilla
+category will also be the place where we file and track TODO features.
+
+Nevertheles, issue tracker here will still be open, in case anyone wants to discuss very
+M68k-specific topics :-) (PR is no longer accepted though)
+
 # The LLVM Compiler Infrastructure
 
 This directory and its sub-directories contain source code for LLVM,
