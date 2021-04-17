@@ -19,7 +19,11 @@
 #include "llvm/ADT/StringSet.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/CheckedArithmetic.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/FormatVariadic.h"
+#include "llvm/Support/JSON.h"
+#include "llvm/Support/ToolOutputFile.h"
 #include <cstdint>
 #include <list>
 #include <set>
@@ -27,6 +31,12 @@
 #include <utility>
 
 using namespace llvm;
+
+static cl::opt<bool>
+  DumpPatterns("dump-patterns", cl::desc("Dump all the patterns"),
+               cl::init(false));
+static cl::opt<std::string>
+  PatternDumpPath("dump-pattern-file", cl::init("-"));
 
 StringRef ExpressionFormat::toString() const {
   switch (Value) {
@@ -1860,6 +1870,44 @@ FileCheck::FileCheck(FileCheckRequest Req)
 
 FileCheck::~FileCheck() = default;
 
+namespace {
+class PatternDumpRAII {
+  struct Pat {
+    std::string PatternStr;
+    unsigned LineNumber;
+  };
+  std::vector<Pat> Patterns;
+
+public:
+  void push(StringRef Pattern, unsigned LineNumber) {
+    if (DumpPatterns) {
+      Patterns.push_back(Pat{Pattern.str(), LineNumber});
+    }
+  }
+
+  ~PatternDumpRAII() {
+    if (!DumpPatterns || Patterns.empty()) return;
+    std::error_code EC;
+    ToolOutputFile OF(PatternDumpPath, EC, sys::fs::OF_Text);
+    if (EC) {
+      errs() << "Failed to open pattern dump file: " << EC.message() << "\n";
+      return;
+    }
+
+    json::OStream JOS(OF.os(), 2);
+    JOS.array([&] {
+      for (const auto &P : Patterns) {
+        JOS.object([&] {
+          JOS.attribute("line", P.LineNumber);
+          JOS.attribute("pattern", P.PatternStr);
+        });
+      }
+    });
+    OF.keep();
+  }
+};
+} // end anonymous namespace
+
 bool FileCheck::readCheckFile(
     SourceMgr &SM, StringRef Buffer, Regex &PrefixRE,
     std::pair<unsigned, unsigned> *ImpPatBufferIDRange) {
@@ -1909,6 +1957,8 @@ bool FileCheck::readCheckFile(
   // LineNumber keeps track of the line on which CheckPrefix instances are
   // found.
   unsigned LineNumber = 1;
+
+  PatternDumpRAII PD;
 
   std::set<StringRef> PrefixesNotFound(Req.CheckPrefixes.begin(),
                                        Req.CheckPrefixes.end());
@@ -1974,6 +2024,8 @@ bool FileCheck::readCheckFile(
     // If this is a comment, we're done.
     if (CheckTy == Check::CheckComment)
       continue;
+
+    PD.push(PatternBuffer, LineNumber);
 
     // Parse the pattern.
     Pattern P(CheckTy, PatternContext.get(), LineNumber);
