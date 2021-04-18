@@ -1,0 +1,34 @@
+[
+  {
+    "line": 13,
+    "pattern": "4e71"
+  },
+  {
+    "line": 15,
+    "pattern": "4e75"
+  },
+  {
+    "line": 18,
+    "pattern": "4ebb 08fa"
+  },
+  {
+    "line": 20,
+    "pattern": "4ebb 080a"
+  },
+  {
+    "line": 23,
+    "pattern": "4eba fff2"
+  },
+  {
+    "line": 25,
+    "pattern": "4eba 0002"
+  },
+  {
+    "line": 28,
+    "pattern": "4e71"
+  },
+  {
+    "line": 30,
+    "pattern": "4e75"
+  }
+]

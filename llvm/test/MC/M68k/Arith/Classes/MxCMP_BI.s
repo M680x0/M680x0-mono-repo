@@ -1,16 +1,17 @@
 	.text
-	.file	"MxCMP_BI.mir"
-	.globl	MxCMP_BI                        ; -- Begin function MxCMP_BI
-	.type	MxCMP_BI,@function
-MxCMP_BI:                               ; @MxCMP_BI
-	.cfi_startproc
-; %bb.0:
+	.globl	MxCMP_BI
+; CHECK-LABEL: MxCMP_BI:
+MxCMP_BI:
+	; CHECK:      cmpi.b  #0, 4294967295
+	; CHECK-SAME: encoding: [0x0c,0x39,0x00,0x00,0xff,0xff,0xff,0xff]
 	cmpi.b	#0, 4294967295
+	; CHECK:      cmpi.b  #-1, 0
+	; CHECK-SAME: encoding: [0x0c,0x39,0x00,0xff,0x00,0x00,0x00,0x00]
 	cmpi.b	#-1, 0
+	; CHECK:      cmpi.l  #-1, 0
+	; CHECK-SAME: encoding: [0x0c,0xb9,0xff,0xff,0xff,0xff,0x00,0x00,0x00,0x00]
 	cmpi.l	#-1, 0
+	; CHECK:      cmpi.l  #42, 4294967295
+	; CHECK-SAME: encoding: [0x0c,0xb9,0x00,0x00,0x00,0x2a,0xff,0xff,0xff,0xff]
 	cmpi.l	#42, 4294967295
-.Lfunc_end0:
-	.size	MxCMP_BI, .Lfunc_end0-MxCMP_BI
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

@@ -1,7 +1,7 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj \
 # RUN:  -code-model=small -relocation-model=pic -o - \
 # RUN:   | extract-section .text -h \
-# RUN:   | FileCheck %s
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s
 
 #------------------------------------------------------------------------------
 # This test checks whether branches have correct offset
@@ -9,10 +9,15 @@
 
 --- # TEXT
 #  0  CHECK:      6702
+
 #  2  CHECK-SAME: 6008
+
 #  4  CHECK-SAME: d0bc 0000 0000
+
 #  A  CHECK-SAME: 4e75
+
 #  C  CHECK-SAME: d0bc 0000 0001
+
 # 12  CHECK-SAME: 4e75
 name: TEXT
 body: |

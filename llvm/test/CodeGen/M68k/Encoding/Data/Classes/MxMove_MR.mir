@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOV8FD,MOV32FR,MOV8PD,MOV32PR,MOV8JD,MOV32JR
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOV8FD,MOV32FR,MOV8PD,MOV32PR,MOV8JD,MOV32JR
 
 #------------------------------------------------------------------------------
 # MxMove_MR is used for moving data from register to memory

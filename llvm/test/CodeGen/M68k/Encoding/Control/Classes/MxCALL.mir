@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=CALLK,CALLQ,CALLB,CALLJ
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=CALLK,CALLQ,CALLB,CALLJ
 
 #------------------------------------------------------------------------------
 # MxCALL pushes address of the next instruction and jumps to the location
@@ -76,7 +76,9 @@ body: |
 #                0   1   0   0   1   1   1   0   1   0 |    MODE   |    REG
 #               ---------------------------------------+-----------+-----------
 # CALLJ-SAME:    0   1   0   0   1   1   1   0 . 1   0   0   1   0   0   0   0
+
 # CALLJ-SAME:    0   1   0   0   1   1   1   0 . 1   0   0   1   0   0   0   1
+
 # CALLJ-SAME:    0   1   0   0   1   1   1   0 . 1   0   0   1   0   0   1   0
 name: MxCALL_ARI
 body: |

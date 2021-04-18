@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOV8FI,MOV32FI,MOV8PI,MOV32PI,MOV8JI,MOV32JI
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOV8FI,MOV32FI,MOV8PI,MOV32PI,MOV8JI,MOV32JI
 
 #------------------------------------------------------------------------------
 # MxMove_MI is used for moving immediate to memory

@@ -1,25 +1,21 @@
 	.text
-	.file	"MxNEG.mir"
-	.globl	MxNEG                           ; -- Begin function MxNEG
-	.type	MxNEG,@function
-MxNEG:                                  ; @MxNEG
-	.cfi_startproc
-; %bb.0:
+	.globl	MxNEG
+; CHECK-LABEL: MxNEG:
+MxNEG:
+	; CHECK:      neg.b  %d0
+	; CHECK-SAME: encoding: [0x44,0x00]
 	neg.b	%d0
+	; CHECK:      neg.l  %d0
+	; CHECK-SAME: encoding: [0x44,0x80]
 	neg.l	%d0
-.Lfunc_end0:
-	.size	MxNEG, .Lfunc_end0-MxNEG
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxNEGX                          ; -- Begin function MxNEGX
-	.type	MxNEGX,@function
-MxNEGX:                                 ; @MxNEGX
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxNEGX
+; CHECK-LABEL: MxNEGX:
+MxNEGX:
+	; CHECK:      negx.b  %d0
+	; CHECK-SAME: encoding: [0x40,0x00]
 	negx.b	%d0
+	; CHECK:      negx.l  %d0
+	; CHECK-SAME: encoding: [0x40,0x80]
 	negx.l	%d0
-.Lfunc_end1:
-	.size	MxNEGX, .Lfunc_end1-MxNEGX
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

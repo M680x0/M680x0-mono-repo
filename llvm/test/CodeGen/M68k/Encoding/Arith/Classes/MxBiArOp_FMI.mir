@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=ADD8FI,ADD32FI,ADD8PI,ADD32PI,ADD8JI,ADD32JI
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=ADD8FI,ADD32FI,ADD8PI,ADD32PI,ADD8JI,ADD32JI
 
 #------------------------------------------------------------------------------
 # MxBiArOp_FMI class used for binary arithmetic operations and operates on

@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=BTST8KD,BTST8QD,BTST8FD,BTST8PD,BTST8JD
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=BTST8KD,BTST8QD,BTST8FD,BTST8PD,BTST8JD
 
 #------------------------------------------------------------------------------
 # MxBTST_MR class used for BTST operations, the source is locate in memory and
@@ -94,6 +94,7 @@ body: |
 #                0   0   0   0 |    REG    | 1   0   0 |    MODE   |    REG
 #               ---------------+-----------+-----------+-----------+-----------
 # BTST8JD-SAME:  0   0   0   0   0   0   0   1 . 0   0   0   1   0   0   0   1
+#
 # BTST8JD-SAME:  0   0   0   0   0   0   1   1 . 0   0   0   1   0   0   0   0
 name: MxBTST_MR_ARI
 body: |

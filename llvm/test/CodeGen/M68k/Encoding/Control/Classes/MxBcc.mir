@@ -1,15 +1,15 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=BCC8,BLS8,BLT8,BEQ8,BMI8,BNE8,BGE8,BCS8,BPL8
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=BCC8,BLS8,BLT8,BEQ8,BMI8,BNE8,BGE8,BCS8,BPL8
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=BPL8,BGT8,BHI8,BVC8,BLE8,BVS8,BCC16,BLS16
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=BPL8,BGT8,BHI8,BVC8,BLE8,BVS8,BCC16,BLS16
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=BLT16,BEQ16,BMI16,BNE16,BGE16,BCS16,BPL16
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=BLT16,BEQ16,BMI16,BNE16,BGE16,BCS16,BPL16
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=BGT16,BHI16,BVC16,BLE16,BVS16
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=BGT16,BHI16,BVC16,BLE16,BVS16
 
 #------------------------------------------------------------------------------
 # MxScc branches if the condition is True
@@ -22,18 +22,31 @@
 #                0   1   1   0 |   CONDITION   |       8-BIT DISPLACEMENT
 #               ---------------+---------------+-------------------------------
 # BHI8:          0   1   1   0   0   0   1   0 . 0   0   0   0   0   0   0   1
+
 # BLS8:          0   1   1   0   0   0   1   1 . 0   0   1   0   1   0   1   0
+
 # BCC8-SAME:     0   1   1   0   0   1   0   0 . 0   0   0   0   0   0   0   1
+
 # BCS8-SAME:     0   1   1   0   0   1   0   1 . 0   0   0   0   0   0   0   1
+
 # BNE8-SAME:     0   1   1   0   0   1   1   0 . 0   0   0   0   0   0   0   1
+
 # BEQ8-SAME:     0   1   1   0   0   1   1   1 . 0   0   0   0   0   0   0   1
+
 # BVC8-SAME:     0   1   1   0   1   0   0   0 . 0   0   0   0   0   0   0   1
+
 # BVS8-SAME:     0   1   1   0   1   0   0   1 . 0   0   0   0   0   0   0   1
+
 # BPL8-SAME:     0   1   1   0   1   0   1   0 . 0   0   0   0   0   0   0   1
+
 # BMI8-SAME:     0   1   1   0   1   0   1   1 . 0   0   0   0   0   0   0   1
+
 # BGE8-SAME:     0   1   1   0   1   1   0   0 . 0   0   0   0   0   0   0   1
+
 # BLT8-SAME:     0   1   1   0   1   1   0   1 . 0   0   0   0   0   0   0   1
+
 # BGT8-SAME:     0   1   1   0   1   1   1   0 . 0   0   0   0   0   0   0   1
+
 # BLE8-SAME:     0   1   1   0   1   1   1   1 . 0   0   0   0   0   0   0   1
 #
 # NOTE MxBCC8 branches cannot encode 0 displacement, 0 in displacement instructs

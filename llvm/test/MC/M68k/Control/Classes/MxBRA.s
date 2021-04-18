@@ -1,26 +1,24 @@
 	.text
-	.file	"MxBRA.mir"
-	.globl	MxBRA8                          ; -- Begin function MxBRA8
-	.type	MxBRA8,@function
-MxBRA8:                                 ; @MxBRA8
-	.cfi_startproc
-; %bb.0:
+	.globl	MxBRA8
+; CHECK-LABEL: MxBRA8:
+MxBRA8:
+	; CHECK:      bra  #1
+	; CHECK-SAME: encoding: [0x60,0x01]
 	bra	#1
+	; CHECK:      bra  #42
+	; CHECK-SAME: encoding: [0x60,0x2a]
 	bra	#42
-.Lfunc_end0:
-	.size	MxBRA8, .Lfunc_end0-MxBRA8
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxBRA16                         ; -- Begin function MxBRA16
-	.type	MxBRA16,@function
-MxBRA16:                                ; @MxBRA16
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxBRA16
+; CHECK-LABEL: MxBRA16:
+MxBRA16:
+	; CHECK:      bra  #0
+	; CHECK-SAME: encoding: [0x60,0x00,0x00,0x00]
 	bra	#0
+	; CHECK:      bra  #-1
+	; CHECK-SAME: encoding: [0x60,0x00,0xff,0xff]
 	bra	#-1
+	; CHECK:      bra  #42
+	; CHECK-SAME: encoding: [0x60,0x00,0x00,0x2a]
 	bra	#42
-.Lfunc_end1:
-	.size	MxBRA16, .Lfunc_end1-MxBRA16
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

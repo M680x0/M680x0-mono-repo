@@ -35,6 +35,10 @@ using namespace llvm;
 static cl::opt<bool>
   DumpPatterns("dump-patterns", cl::desc("Dump all the patterns"),
                cl::init(false));
+static cl::opt<bool>
+  AppendPatternDump("dump-pattern-append",
+                    cl::desc("Append content to the destination"),
+                    cl::init(false));
 static cl::opt<std::string>
   PatternDumpPath("dump-pattern-file", cl::init("-"));
 
@@ -1888,7 +1892,10 @@ public:
   ~PatternDumpRAII() {
     if (!DumpPatterns || Patterns.empty()) return;
     std::error_code EC;
-    ToolOutputFile OF(PatternDumpPath, EC, sys::fs::OF_Text);
+    sys::fs::OpenFlags Flags = sys::fs::OF_Text;
+    if (AppendPatternDump)
+      Flags |= sys::fs::OF_Append;
+    ToolOutputFile OF(PatternDumpPath, EC, Flags);
     if (EC) {
       errs() << "Failed to open pattern dump file: " << EC.message() << "\n";
       return;

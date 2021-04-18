@@ -1,9 +1,9 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SDIVD32D16,UDIVD32D16,SMULD32D16,UMULD32D16
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=SDIVD32D16,UDIVD32D16,SMULD32D16,UMULD32D16
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SDIVD32I16,UDIVD32I16,SMULD32I16,UMULD32I16
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=SDIVD32I16,UDIVD32I16,SMULD32I16,UMULD32I16
 
 #------------------------------------------------------------------------------
 # MxDiMu is used for sign/unsigned division/multiply of word size data

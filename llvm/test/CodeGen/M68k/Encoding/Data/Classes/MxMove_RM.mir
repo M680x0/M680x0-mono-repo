@@ -1,12 +1,12 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOV8DK,MOV32RK,MOV8DQ,MOV32RQ,MOV8DF,MOV32RF
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOV8DK,MOV32RK,MOV8DQ,MOV32RQ,MOV8DF,MOV32RF
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOV8DP,MOV32RP,MOV8DJ,MOV32RJ,MOV8DO,MOV32RO
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOV8DP,MOV32RP,MOV8DJ,MOV32RJ,MOV8DO,MOV32RO
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOV8DE,MOV32RE,MOV8DB,MOV32RB
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOV8DE,MOV32RE,MOV8DB,MOV32RB
 
 #------------------------------------------------------------------------------
 # MxMove_RM is used for moving data from memory to register

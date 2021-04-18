@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=NEG8D,NEG32D,NEGX8D,NEGX32D
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=NEG8D,NEG32D,NEGX8D,NEGX32D
 
 #------------------------------------------------------------------------------
 # MxNEG is used to negate a number
@@ -14,6 +14,7 @@
 #                0   1   0   0 | x   x   x   x | SIZE  |    MODE   |    REG
 #               ---------------+---------------+-------+-----------+-----------
 # NEG8D:         0   1   0   0   0   1   0   0 . 0   0   0   0   0   0   0   0
+#
 # NEG32D-SAME:   0   1   0   0   0   1   0   0 . 1   0   0   0   0   0   0   0
 name: MxNEG
 body: |
@@ -29,6 +30,7 @@ body: |
 #                0   1   0   0 | x   x   x   x | SIZE  |    MODE   |    REG
 #               ---------------+---------------+-------+-----------+-----------
 # NEGX8D-SAME:   0   1   0   0   0   0   0   0 . 0   0   0   0   0   0   0   0
+#
 # NEGX32D-SAME:  0   1   0   0   0   0   0   0 . 1   0   0   0   0   0   0   0
 name: MxNEGX
 body: |

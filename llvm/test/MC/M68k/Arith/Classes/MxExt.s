@@ -1,16 +1,17 @@
 	.text
-	.file	"MxExt.mir"
-	.globl	MxEXT                           ; -- Begin function MxEXT
-	.type	MxEXT,@function
-MxEXT:                                  ; @MxEXT
-	.cfi_startproc
-; %bb.0:
+	.globl	MxEXT
+; CHECK-LABEL: MxEXT:
+MxEXT:
+	; CHECK:      ext.w  %d0
+	; CHECK-SAME: encoding: [0x48,0x80]
 	ext.w	%d0
+	; CHECK:      ext.w  %d3
+	; CHECK-SAME: encoding: [0x48,0x83]
 	ext.w	%d3
+	; CHECK:      ext.l  %d0
+	; CHECK-SAME: encoding: [0x48,0xc0]
 	ext.l	%d0
+	; CHECK:      ext.l  %d7
+	; CHECK-SAME: encoding: [0x48,0xc7]
 	ext.l	%d7
-.Lfunc_end0:
-	.size	MxEXT, .Lfunc_end0-MxEXT
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

@@ -1,9 +1,9 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SHL8DI,SHL32DI,LSR8DI,LSR32DI,ASR8DI,ASR32DI
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=SHL8DI,SHL32DI,LSR8DI,LSR32DI,ASR8DI,ASR32DI
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=ROL8DI,ROL32DI,ROR8DI,ROR32DI
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=ROL8DI,ROL32DI,ROR8DI,ROR32DI
 
 #------------------------------------------------------------------------------
 # MxSR_DI encodes shift or rotate instructions; shift count is encoded into
@@ -16,25 +16,45 @@
 #                1   1   1   0 |     Dx    | D |  SIZE | 0 |  OP   |    Dy
 #               ---------------+-----------+---+-------+---+-------+-----------
 # SHL8DI:        1   1   1   0   0   0   1   1 . 0   0   0   0   1   0   0   1
+
 # SHL32DI-SAME:  1   1   1   0   0   0   1   1 . 1   0   0   0   1   0   0   1
+
 #               ---------------+-----------+---+-------+---+-------+-----------
+
 # LSR8DI-SAME:   1   1   1   0   0   0   1   0 . 0   0   0   0   1   0   0   1
+
 # LSR32DI-SAME:  1   1   1   0   0   0   1   0 . 1   0   0   0   1   0   0   1
+
 #               ---------------+-----------+---+-------+---+-------+-----------
+
 # ASR8DI-SAME:   1   1   1   0   0   0   1   0 . 0   0   0   0   0   0   0   1
+
 # ASR32DI-SAME:  1   1   1   0   0   0   1   0 . 1   0   0   0   0   0   0   1
+
 #               ---------------+-----------+---+-------+---+-------+-----------
+
 # ROL8DI:        1   1   1   0   0   0   1   1 . 0   0   0   1   1   0   0   1
+
 # ROL32DI-SAME:  1   1   1   0   0   0   1   1 . 1   0   0   1   1   0   0   1
+
 #               ---------------+-----------+---+-------+---+-------+-----------
+
 # ROR8DI-SAME:   1   1   1   0   0   0   1   0 . 0   0   0   1   1   0   0   1
+
 # ROR32DI-SAME:  1   1   1   0   0   0   1   0 . 1   0   0   1   1   0   0   1
+
 # ROR32DI-SAME:  1   1   1   0   0   1   0   0 . 1   0   0   1   1   0   0   1
+
 # ROR32DI-SAME:  1   1   1   0   0   1   1   0 . 1   0   0   1   1   0   0   1
+
 # ROR32DI-SAME:  1   1   1   0   1   0   0   0 . 1   0   0   1   1   0   0   1
+
 # ROR32DI-SAME:  1   1   1   0   1   0   1   0 . 1   0   0   1   1   0   0   1
+
 # ROR32DI-SAME:  1   1   1   0   1   1   0   0 . 1   0   0   1   1   0   0   1
+
 # ROR32DI-SAME:  1   1   1   0   1   1   1   0 . 1   0   0   1   1   0   0   1
+
 # ROR32DI-SAME:  1   1   1   0   0   0   0   0 . 1   0   0   1   1   0   0   1
 name: MxSR_DI
 body: |

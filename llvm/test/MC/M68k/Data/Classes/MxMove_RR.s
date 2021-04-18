@@ -1,18 +1,23 @@
 	.text
-	.file	"MxMove_RR.mir"
-	.globl	MxMove_RR                       ; -- Begin function MxMove_RR
-	.type	MxMove_RR,@function
-MxMove_RR:                              ; @MxMove_RR
-	.cfi_startproc
-; %bb.0:
+	.globl	MxMove_RR
+; CHECK-LABEL: MxMove_RR:
+MxMove_RR:
+	; CHECK:      move.b  %d0, %d1
+	; CHECK-SAME: encoding: [0x12,0x00]
 	move.b	%d0, %d1
+	; CHECK:      move.w  %a2, %d3
+	; CHECK-SAME: encoding: [0x36,0x0a]
 	move.w	%a2, %d3
+	; CHECK:      move.w  %a2, %a6
+	; CHECK-SAME: encoding: [0x3c,0x4a]
 	move.w	%a2, %a6
+	; CHECK:      move.w  %a2, %d1
+	; CHECK-SAME: encoding: [0x32,0x0a]
 	move.w	%a2, %d1
+	; CHECK:      move.l  %d2, %d1
+	; CHECK-SAME: encoding: [0x22,0x02]
 	move.l	%d2, %d1
+	; CHECK:      move.l  %a2, %a1
+	; CHECK-SAME: encoding: [0x22,0x4a]
 	move.l	%a2, %a1
-.Lfunc_end0:
-	.size	MxMove_RR, .Lfunc_end0-MxMove_RR
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

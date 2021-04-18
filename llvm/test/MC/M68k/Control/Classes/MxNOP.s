@@ -1,13 +1,8 @@
 	.text
-	.file	"MxNOP.mir"
-	.globl	MxNOP                           ; -- Begin function MxNOP
-	.type	MxNOP,@function
-MxNOP:                                  ; @MxNOP
-	.cfi_startproc
-; %bb.0:
+	.globl	MxNOP
+; CHECK-LABEL: MxNOP:
+MxNOP:
+	; CHECK:      nop
+	; CHECK-SAME: encoding: [0x4e,0x71]
 	nop
-.Lfunc_end0:
-	.size	MxNOP, .Lfunc_end0-MxNOP
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

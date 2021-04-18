@@ -1,21 +1,21 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SETD8CC,SETD8LS,SETD8LT,SETD8EQ,SETD8MI,SETD8F
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=SETD8CC,SETD8LS,SETD8LT,SETD8EQ,SETD8MI,SETD8F
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SETD8NE,SETD8GE,SETD8CS,SETD8PL,SETD8GT,SETD8T
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=SETD8NE,SETD8GE,SETD8CS,SETD8PL,SETD8GT,SETD8T
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SETD8HI,SETD8VC,SETD8LE,SETD8VS,SETP8CC,SETP8LS
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=SETD8HI,SETD8VC,SETD8LE,SETD8VS,SETP8CC,SETP8LS
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SETP8LT,SETP8EQ,SETP8MI,SETP8F,SETP8NE,SETP8GE
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=SETP8LT,SETP8EQ,SETP8MI,SETP8F,SETP8NE,SETP8GE
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SETP8CS,SETP8PL,SETP8GT,SETP8T,SETP8HI,SETP8VC
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=SETP8CS,SETP8PL,SETP8GT,SETP8T,SETP8HI,SETP8VC
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=SETP8LE,SETP8VS
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=SETP8LE,SETP8VS
 
 #------------------------------------------------------------------------------
 # MxScc sets byte filled with 1s or 0s based on cc condition
@@ -28,20 +28,35 @@
 #                0   1   0   1 |   CONDITION   | 1   1 |    MODE   |    REG
 #               ---------------+---------------+-------+-----------+-----------
 # SETD8T:        0   1   0   1   0   0   0   0 . 1   1   0   0   0   0   0   0
+
 # SETD8F:        0   1   0   1   0   0   0   1 . 1   1   0   0   0   0   0   1
+
 # SETD8HI:       0   1   0   1   0   0   1   0 . 1   1   0   0   0   0   1   0
+
 # SETD8LS-SAME:  0   1   0   1   0   0   1   1 . 1   1   0   0   0   0   1   1
+
 # SETD8CC:       0   1   0   1   0   1   0   0 . 1   1   0   0   0   1   0   0
+
 # SETD8CS-SAME:  0   1   0   1   0   1   0   1 . 1   1   0   0   0   1   0   1
+
 # SETD8NE-SAME:  0   1   0   1   0   1   1   0 . 1   1   0   0   0   1   1   0
+
 # SETD8EQ-SAME:  0   1   0   1   0   1   1   1 . 1   1   0   0   0   1   1   1
+
 # SETD8VC-SAME:  0   1   0   1   1   0   0   0 . 1   1   0   0   0   0   0   0
+
 # SETD8VS-SAME:  0   1   0   1   1   0   0   1 . 1   1   0   0   0   0   0   0
+
 # SETD8PL-SAME:  0   1   0   1   1   0   1   0 . 1   1   0   0   0   0   0   0
+
 # SETD8MI-SAME:  0   1   0   1   1   0   1   1 . 1   1   0   0   0   0   0   0
+
 # SETD8GE-SAME:  0   1   0   1   1   1   0   0 . 1   1   0   0   0   0   0   0
+
 # SETD8LT-SAME:  0   1   0   1   1   1   0   1 . 1   1   0   0   0   0   0   0
+
 # SETD8GT-SAME:  0   1   0   1   1   1   1   0 . 1   1   0   0   0   0   0   0
+
 # SETD8LE-SAME:  0   1   0   1   1   1   1   1 . 1   1   0   0   0   0   0   0
 name: MxScc_D
 body: |

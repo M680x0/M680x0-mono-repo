@@ -1,9 +1,9 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=ADD8DK,ADD32RK,ADD8DQ,ADD32RQ,ADD8DF,ADD32RF
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=ADD8DK,ADD32RK,ADD8DQ,ADD32RQ,ADD8DF,ADD32RF
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=ADD8DP,ADD32RP,ADD8DJ,ADD32RJ
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=ADD8DP,ADD32RP,ADD8DJ,ADD32RJ
 
 #------------------------------------------------------------------------------
 # MxBiArOp_RFRM class used for binary arithmetic operations and operates on

@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=BTST32DD
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=BTST32DD
 
 #------------------------------------------------------------------------------
 # MxBTST_RR class used for BTST operations, where both the source and bit number
@@ -14,6 +14,7 @@
 #                0   0   0   0 |    REG    | 1   0   0 |    MODE   |    REG
 #               ---------------+-----------+-----------+-----------+-----------
 # BTST32DD:      0   0   0   0   0   0   1   1 . 0   0   0   0   0   0   0   0
+#
 # BTST32DD:      0   0   0   0   0   0   0   1 . 0   0   0   0   0   0   1   1
 name: MxBTST_RR
 body: |

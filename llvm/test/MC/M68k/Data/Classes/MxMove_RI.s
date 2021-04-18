@@ -1,15 +1,14 @@
 	.text
-	.file	"MxMove_RI.mir"
-	.globl	MxMove_RI                       ; -- Begin function MxMove_RI
-	.type	MxMove_RI,@function
-MxMove_RI:                              ; @MxMove_RI
-	.cfi_startproc
-; %bb.0:
+	.globl	MxMove_RI
+; CHECK-LABEL: MxMove_RI:
+MxMove_RI:
+	; CHECK:      move.b  #-1, %d0
+	; CHECK-SAME: encoding: [0x10,0x3c,0x00,0xff]
 	move.b	#-1, %d0
+	; CHECK:      move.l  #42, %a1
+	; CHECK-SAME: encoding: [0x22,0x7c,0x00,0x00,0x00,0x2a]
 	move.l	#42, %a1
+	; CHECK:      move.l  #-1, %a1
+	; CHECK-SAME: encoding: [0x22,0x7c,0xff,0xff,0xff,0xff]
 	move.l	#-1, %a1
-.Lfunc_end0:
-	.size	MxMove_RI, .Lfunc_end0-MxMove_RI
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

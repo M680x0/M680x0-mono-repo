@@ -1,0 +1,14 @@
+[
+  {
+    "line": 18,
+    "pattern": "00000002 {{[0-9a-f]+}} R_68K_GOTPCREL16 {{[0-9]*}} _GLOBAL_OFFSET_TABLE_ + 0"
+  },
+  {
+    "line": 19,
+    "pattern": "00000007 {{[0-9a-f]+}} R_68K_GOTOFF8 {{[0-9]*}} dst + 0"
+  },
+  {
+    "line": 20,
+    "pattern": "0000000a {{[0-9a-f]+}} R_68K_GOTOFF16 {{[0-9]*}} dst + 0"
+  }
+]

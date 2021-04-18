@@ -1,49 +1,47 @@
 	.text
-	.file	"MxCALL.mir"
-	.globl	MxCALL_PCI                      ; -- Begin function MxCALL_PCI
-	.type	MxCALL_PCI,@function
-MxCALL_PCI:                             ; @MxCALL_PCI
-	.cfi_startproc
-; %bb.0:
+	.globl	MxCALL_PCI
+; CHECK-LABEL: MxCALL_PCI:
+MxCALL_PCI:
+	; CHECK:      jsr  (0,%pc,%a0)
+	; CHECK-SAME: encoding: [0x4e,0xbb,0x88,0x00]
 	jsr	(0,%pc,%a0)
+	; CHECK:      jsr  (-1,%pc,%a0)
+	; CHECK-SAME: encoding: [0x4e,0xbb,0x88,0xff]
 	jsr	(-1,%pc,%a0)
+	; CHECK:      jsr  (42,%pc,%a0)
+	; CHECK-SAME: encoding: [0x4e,0xbb,0x88,0x2a]
 	jsr	(42,%pc,%a0)
-.Lfunc_end0:
-	.size	MxCALL_PCI, .Lfunc_end0-MxCALL_PCI
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxCALL_PCD                      ; -- Begin function MxCALL_PCD
-	.type	MxCALL_PCD,@function
-MxCALL_PCD:                             ; @MxCALL_PCD
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxCALL_PCD
+; CHECK-LABEL: MxCALL_PCD:
+MxCALL_PCD:
+	; CHECK:      jsr  (0,%pc)
+	; CHECK-SAME: encoding: [0x4e,0xba,0x00,0x00]
 	jsr	(0,%pc)
+	; CHECK:      jsr  (32767,%pc)
+	; CHECK-SAME: encoding: [0x4e,0xba,0x7f,0xff]
 	jsr	(32767,%pc)
-.Lfunc_end1:
-	.size	MxCALL_PCD, .Lfunc_end1-MxCALL_PCD
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxCALL_ABS                      ; -- Begin function MxCALL_ABS
-	.type	MxCALL_ABS,@function
-MxCALL_ABS:                             ; @MxCALL_ABS
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxCALL_ABS
+; CHECK-LABEL: MxCALL_ABS:
+MxCALL_ABS:
+	; CHECK:      jsr  42
+	; CHECK-SAME: encoding: [0x4e,0xb9,0x00,0x00,0x00,0x2a]
 	jsr	42
+	; CHECK:      jsr  4294967295
+	; CHECK-SAME: encoding: [0x4e,0xb9,0xff,0xff,0xff,0xff]
 	jsr	4294967295
-.Lfunc_end2:
-	.size	MxCALL_ABS, .Lfunc_end2-MxCALL_ABS
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxCALL_ARI                      ; -- Begin function MxCALL_ARI
-	.type	MxCALL_ARI,@function
-MxCALL_ARI:                             ; @MxCALL_ARI
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxCALL_ARI
+; CHECK-LABEL: MxCALL_ARI:
+MxCALL_ARI:
+	; CHECK:      jsr  (%a0)
+	; CHECK-SAME: encoding: [0x4e,0x90]
 	jsr	(%a0)
+	; CHECK:      jsr  (%a1)
+	; CHECK-SAME: encoding: [0x4e,0x91]
 	jsr	(%a1)
+	; CHECK:      jsr  (%a2)
+	; CHECK-SAME: encoding: [0x4e,0x92]
 	jsr	(%a2)
-.Lfunc_end3:
-	.size	MxCALL_ARI, .Lfunc_end3-MxCALL_ARI
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

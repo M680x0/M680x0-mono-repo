@@ -1,40 +1,43 @@
 	.text
-	.file	"MxMove_MR.mir"
-	.globl	MxMove_MR_ARII                  ; -- Begin function MxMove_MR_ARII
-	.type	MxMove_MR_ARII,@function
-MxMove_MR_ARII:                         ; @MxMove_MR_ARII
-	.cfi_startproc
-; %bb.0:
+	.globl	MxMove_MR_ARII
+; CHECK-LABEL: MxMove_MR_ARII:
+MxMove_MR_ARII:
+	; CHECK:      move.b  %d0, (0,%a0,%d1)
+	; CHECK-SAME: encoding: [0x11,0x80,0x18,0x00]
 	move.b	%d0, (0,%a0,%d1)
+	; CHECK:      move.b  %d0, (-1,%a0,%d1)
+	; CHECK-SAME: encoding: [0x11,0x80,0x18,0xff]
 	move.b	%d0, (-1,%a0,%d1)
+	; CHECK:      move.l  %d0, (0,%a1,%d1)
+	; CHECK-SAME: encoding: [0x23,0x80,0x18,0x00]
 	move.l	%d0, (0,%a1,%d1)
+	; CHECK:      move.l  %d1, (0,%a2,%a2)
+	; CHECK-SAME: encoding: [0x25,0x81,0xa8,0x00]
 	move.l	%d1, (0,%a2,%a2)
-.Lfunc_end0:
-	.size	MxMove_MR_ARII, .Lfunc_end0-MxMove_MR_ARII
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxMove_MR_ARID                  ; -- Begin function MxMove_MR_ARID
-	.type	MxMove_MR_ARID,@function
-MxMove_MR_ARID:                         ; @MxMove_MR_ARID
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxMove_MR_ARID
+; CHECK-LABEL: MxMove_MR_ARID:
+MxMove_MR_ARID:
+	; CHECK:      move.b  %d0, (0,%a0)
+	; CHECK-SAME: encoding: [0x11,0x40,0x00,0x00]
 	move.b	%d0, (0,%a0)
+	; CHECK:      move.l  %d0, (-1,%a1)
+	; CHECK-SAME: encoding: [0x23,0x40,0xff,0xff]
 	move.l	%d0, (-1,%a1)
+	; CHECK:      move.l  %a0, (-1,%a1)
+	; CHECK-SAME: encoding: [0x23,0x48,0xff,0xff]
 	move.l	%a0, (-1,%a1)
-.Lfunc_end1:
-	.size	MxMove_MR_ARID, .Lfunc_end1-MxMove_MR_ARID
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxMove_MR_ARI                   ; -- Begin function MxMove_MR_ARI
-	.type	MxMove_MR_ARI,@function
-MxMove_MR_ARI:                          ; @MxMove_MR_ARI
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxMove_MR_ARI
+; CHECK-LABEL: MxMove_MR_ARI:
+MxMove_MR_ARI:
+	; CHECK:      move.b  %d0, (%a0)
+	; CHECK-SAME: encoding: [0x10,0x80]
 	move.b	%d0, (%a0)
+	; CHECK:      move.l  %d3, (%a1)
+	; CHECK-SAME: encoding: [0x22,0x83]
 	move.l	%d3, (%a1)
+	; CHECK:      move.l  %a4, (%a1)
+	; CHECK-SAME: encoding: [0x22,0x8c]
 	move.l	%a4, (%a1)
-.Lfunc_end2:
-	.size	MxMove_MR_ARI, .Lfunc_end2-MxMove_MR_ARI
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

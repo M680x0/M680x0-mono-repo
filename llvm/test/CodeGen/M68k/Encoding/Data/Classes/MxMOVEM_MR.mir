@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOVM32PM,MOVM32JM
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOVM32PM,MOVM32JM
 
 #------------------------------------------------------------------------------
 # MxMOVEM_MR is used to store a list of register sequentially into a memory

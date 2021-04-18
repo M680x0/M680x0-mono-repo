@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=CMP8BI,CMP32BI
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=CMP8BI,CMP32BI
 
 #------------------------------------------------------------------------------
 # MxCMP_BI class used for compare operations and operates on absolute memory

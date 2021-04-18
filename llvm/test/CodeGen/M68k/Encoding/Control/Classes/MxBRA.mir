@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=BRA8,BRA16
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=BRA8,BRA16
 
 #------------------------------------------------------------------------------
 # MxBRA unconditionally branches somewhere
@@ -13,6 +13,7 @@
 #                0   1   1   0   0   0   0   0 |       8-BIT DISPLACEMENT
 #               -------------------------------+-------------------------------
 # BRA8:          0   1   1   0   0   0   0   0 . 0   0   0   0   0   0   0   1
+#
 # BRA8-SAME:     0   1   1   0   0   0   0   0 . 0   0   1   0   1   0   1   0
 #
 # NOTE MxBRA branches cannot encode 0 displacement, 0 in displacement instructs

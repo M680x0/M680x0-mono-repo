@@ -1,6 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=XOR16DI,XOR32DI
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=XOR16DI,XOR32DI
 
 #------------------------------------------------------------------------------
 # MxBiArOp_RFRI class used for binary arithmetic operations and operates on

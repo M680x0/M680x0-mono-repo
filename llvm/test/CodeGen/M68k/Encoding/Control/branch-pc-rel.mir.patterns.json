@@ -1,0 +1,26 @@
+[
+  {
+    "line": 11,
+    "pattern": "6702"
+  },
+  {
+    "line": 13,
+    "pattern": "6008"
+  },
+  {
+    "line": 15,
+    "pattern": "d0bc 0000 0000"
+  },
+  {
+    "line": 17,
+    "pattern": "4e75"
+  },
+  {
+    "line": 19,
+    "pattern": "d0bc 0000 0001"
+  },
+  {
+    "line": 21,
+    "pattern": "4e75"
+  }
+]

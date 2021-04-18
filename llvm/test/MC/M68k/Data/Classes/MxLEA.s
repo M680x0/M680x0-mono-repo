@@ -1,36 +1,31 @@
 	.text
-	.file	"MxLEA.mir"
-	.globl	MxLEA_PCD                       ; -- Begin function MxLEA_PCD
-	.type	MxLEA_PCD,@function
-MxLEA_PCD:                              ; @MxLEA_PCD
-	.cfi_startproc
-; %bb.0:
+	.globl	MxLEA_PCD
+; CHECK-LABEL: MxLEA_PCD:
+MxLEA_PCD:
+	; CHECK:      lea  (0,%pc), %a0
+	; CHECK-SAME: encoding: [0x41,0xfa,0x00,0x00]
 	lea	(0,%pc), %a0
+	; CHECK:      lea  (-1,%pc), %a0
+	; CHECK-SAME: encoding: [0x41,0xfa,0xff,0xff]
 	lea	(-1,%pc), %a0
-.Lfunc_end0:
-	.size	MxLEA_PCD, .Lfunc_end0-MxLEA_PCD
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxLEA_ARII                      ; -- Begin function MxLEA_ARII
-	.type	MxLEA_ARII,@function
-MxLEA_ARII:                             ; @MxLEA_ARII
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxLEA_ARII
+; CHECK-LABEL: MxLEA_ARII:
+MxLEA_ARII:
+	; CHECK:      lea  (0,%a1,%d1), %a0
+	; CHECK-SAME: encoding: [0x41,0xf1,0x18,0x00]
 	lea	(0,%a1,%d1), %a0
+	; CHECK:      lea  (0,%a2,%a2), %a1
+	; CHECK-SAME: encoding: [0x43,0xf2,0xa8,0x00]
 	lea	(0,%a2,%a2), %a1
-.Lfunc_end1:
-	.size	MxLEA_ARII, .Lfunc_end1-MxLEA_ARII
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxLEA_ARID                      ; -- Begin function MxLEA_ARID
-	.type	MxLEA_ARID,@function
-MxLEA_ARID:                             ; @MxLEA_ARID
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxLEA_ARID
+; CHECK-LABEL: MxLEA_ARID:
+MxLEA_ARID:
+	; CHECK:      lea  (-1,%a1), %a0
+	; CHECK-SAME: encoding: [0x41,0xe9,0xff,0xff]
 	lea	(-1,%a1), %a0
+	; CHECK:      lea  (-1,%a1), %a0
+	; CHECK-SAME: encoding: [0x41,0xe9,0xff,0xff]
 	lea	(-1,%a1), %a0
-.Lfunc_end2:
-	.size	MxLEA_ARID, .Lfunc_end2-MxLEA_ARID
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

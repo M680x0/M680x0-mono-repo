@@ -1,58 +1,51 @@
 	.text
-	.file	"MxBTST_MI.mir"
-	.globl	MxBTST_MI_PCI                   ; -- Begin function MxBTST_MI_PCI
-	.type	MxBTST_MI_PCI,@function
-MxBTST_MI_PCI:                          ; @MxBTST_MI_PCI
-	.cfi_startproc
-; %bb.0:
+	.globl	MxBTST_MI_PCI
+; CHECK-LABEL: MxBTST_MI_PCI:
+MxBTST_MI_PCI:
+	; CHECK:      btst  #0, (-1,%pc,%d1)
+	; CHECK-SAME: encoding: [0x08,0x3b,0x00,0x00,0x18,0xff]
 	btst	#0, (-1,%pc,%d1)
+	; CHECK:      btst  #1, (0,%pc,%d0)
+	; CHECK-SAME: encoding: [0x08,0x3b,0x00,0x01,0x08,0x00]
 	btst	#1, (0,%pc,%d0)
-.Lfunc_end0:
-	.size	MxBTST_MI_PCI, .Lfunc_end0-MxBTST_MI_PCI
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxBTST_MI_PCD                   ; -- Begin function MxBTST_MI_PCD
-	.type	MxBTST_MI_PCD,@function
-MxBTST_MI_PCD:                          ; @MxBTST_MI_PCD
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxBTST_MI_PCD
+; CHECK-LABEL: MxBTST_MI_PCD:
+MxBTST_MI_PCD:
+	; CHECK:      btst  #0, (0,%pc)
+	; CHECK-SAME: encoding: [0x08,0x3a,0x00,0x00,0x00,0x00]
 	btst	#0, (0,%pc)
+	; CHECK:      btst  #-1, (-1,%pc)
+	; CHECK-SAME: encoding: [0x08,0x3a,0x00,0xff,0xff,0xff]
 	btst	#-1, (-1,%pc)
-.Lfunc_end1:
-	.size	MxBTST_MI_PCD, .Lfunc_end1-MxBTST_MI_PCD
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxBTST_MI_ARII                  ; -- Begin function MxBTST_MI_ARII
-	.type	MxBTST_MI_ARII,@function
-MxBTST_MI_ARII:                         ; @MxBTST_MI_ARII
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxBTST_MI_ARII
+; CHECK-LABEL: MxBTST_MI_ARII:
+MxBTST_MI_ARII:
+	; CHECK:      btst  #0, (-1,%a1,%a0)
+	; CHECK-SAME: encoding: [0x08,0x31,0x00,0x00,0x88,0xff]
 	btst	#0, (-1,%a1,%a0)
+	; CHECK:      btst  #-1, (0,%a0,%a0)
+	; CHECK-SAME: encoding: [0x08,0x30,0x00,0xff,0x88,0x00]
 	btst	#-1, (0,%a0,%a0)
-.Lfunc_end2:
-	.size	MxBTST_MI_ARII, .Lfunc_end2-MxBTST_MI_ARII
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxBTST_MI_ARID                  ; -- Begin function MxBTST_MI_ARID
-	.type	MxBTST_MI_ARID,@function
-MxBTST_MI_ARID:                         ; @MxBTST_MI_ARID
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxBTST_MI_ARID
+; CHECK-LABEL: MxBTST_MI_ARID:
+MxBTST_MI_ARID:
+	; CHECK:      btst  #0, (-1,%a1)
+	; CHECK-SAME: encoding: [0x08,0x29,0x00,0x00,0xff,0xff]
 	btst	#0, (-1,%a1)
+	; CHECK:      btst  #-1, (0,%a0)
+	; CHECK-SAME: encoding: [0x08,0x28,0x00,0xff,0x00,0x00]
 	btst	#-1, (0,%a0)
-.Lfunc_end3:
-	.size	MxBTST_MI_ARID, .Lfunc_end3-MxBTST_MI_ARID
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxBTST_MI_ARI                   ; -- Begin function MxBTST_MI_ARI
-	.type	MxBTST_MI_ARI,@function
-MxBTST_MI_ARI:                          ; @MxBTST_MI_ARI
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxBTST_MI_ARI
+; CHECK-LABEL: MxBTST_MI_ARI:
+MxBTST_MI_ARI:
+	; CHECK:      btst  #0, (%a1)
+	; CHECK-SAME: encoding: [0x08,0x11,0x00,0x00]
 	btst	#0, (%a1)
+	; CHECK:      btst  #-1, (%a0)
+	; CHECK-SAME: encoding: [0x08,0x10,0x00,0xff]
 	btst	#-1, (%a0)
-.Lfunc_end4:
-	.size	MxBTST_MI_ARI, .Lfunc_end4-MxBTST_MI_ARI
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

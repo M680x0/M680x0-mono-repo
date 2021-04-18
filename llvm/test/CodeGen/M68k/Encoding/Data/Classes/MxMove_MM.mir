@@ -1,12 +1,12 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOV8JK,MOV32JK,MOV8JQ,MOV32JQ,MOV8FF,MOV32FF
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOV8JK,MOV32JK,MOV8JQ,MOV32JQ,MOV8FF,MOV32FF
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOV8PP,MOV32PP,MOV8JJ,MOV32JJ,MOV8OO,MOV32OO
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOV8PP,MOV32PP,MOV8JJ,MOV32JJ,MOV8OO,MOV32OO
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck %s -check-prefixes=MOV8EE,MOV32EE,MOV8BB,MOV32BB
+# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=MOV8EE,MOV32EE,MOV8BB,MOV32BB
 
 #------------------------------------------------------------------------------
 # MxMove_MM is used for moving data from memory to memory

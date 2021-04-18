@@ -1,47 +1,41 @@
 	.text
-	.file	"call-pc-rel.mir"
-	.globl	BACKWARD                        ; -- Begin function BACKWARD
-	.type	BACKWARD,@function
-BACKWARD:                               ; @BACKWARD
-	.cfi_startproc
-; %bb.0:
+	.globl	BACKWARD
+; CHECK-LABEL: BACKWARD:
+BACKWARD:
+	; CHECK:      nop
+	; CHECK-SAME: encoding: [0x4e,0x71]
 	nop
+	; CHECK:      rts
+	; CHECK-SAME: encoding: [0x4e,0x75]
 	rts
-.Lfunc_end0:
-	.size	BACKWARD, .Lfunc_end0-BACKWARD
-	.cfi_endproc
-                                        ; -- End function
-	.globl	PCI                             ; -- Begin function PCI
-	.type	PCI,@function
-PCI:                                    ; @PCI
-	.cfi_startproc
-; %bb.0:
+
+	.globl	PCI
+; CHECK-LABEL: PCI:
+PCI:
+	; CHECK:      jsr  (BACKWARD,%pc,%d0)
+	; CHECK-SAME: encoding: [0x4e,0xbb,0x08,0xfa]
 	jsr	(BACKWARD,%pc,%d0)
+	; CHECK:      jsr  (FORWARD,%pc,%d0)
+	; CHECK-SAME: encoding: [0x4e,0xbb,0x08,0x0a]
 	jsr	(FORWARD,%pc,%d0)
-.Lfunc_end1:
-	.size	PCI, .Lfunc_end1-PCI
-	.cfi_endproc
-                                        ; -- End function
-	.globl	PCD                             ; -- Begin function PCD
-	.type	PCD,@function
-PCD:                                    ; @PCD
-	.cfi_startproc
-; %bb.0:
+
+	.globl	PCD
+; CHECK-LABEL: PCD:
+PCD:
+	; CHECK:      jsr  (BACKWARD,%pc)
+	; CHECK-SAME: encoding: [0x4e,0xba,0xff,0xf2]
 	jsr	(BACKWARD,%pc)
+	; CHECK:      jsr  (FORWARD,%pc)
+	; CHECK-SAME: encoding: [0x4e,0xba,0x00,0x02]
 	jsr	(FORWARD,%pc)
-.Lfunc_end2:
-	.size	PCD, .Lfunc_end2-PCD
-	.cfi_endproc
-                                        ; -- End function
-	.globl	FORWARD                         ; -- Begin function FORWARD
-	.type	FORWARD,@function
-FORWARD:                                ; @FORWARD
-	.cfi_startproc
-; %bb.0:
+
+	.globl	FORWARD
+; CHECK-LABEL: FORWARD:
+FORWARD:
+	; CHECK:      nop
+	; CHECK-SAME: encoding: [0x4e,0x71]
 	nop
+	; CHECK:      rts
+	; CHECK-SAME: encoding: [0x4e,0x75]
 	rts
-.Lfunc_end3:
-	.size	FORWARD, .Lfunc_end3-FORWARD
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

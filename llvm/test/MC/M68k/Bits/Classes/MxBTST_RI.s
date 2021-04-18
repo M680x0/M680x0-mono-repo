@@ -1,14 +1,11 @@
 	.text
-	.file	"MxBTST_RI.mir"
-	.globl	MxBTST_RI                       ; -- Begin function MxBTST_RI
-	.type	MxBTST_RI,@function
-MxBTST_RI:                              ; @MxBTST_RI
-	.cfi_startproc
-; %bb.0:
+	.globl	MxBTST_RI
+; CHECK-LABEL: MxBTST_RI:
+MxBTST_RI:
+	; CHECK:      btst  #1, %d0
+	; CHECK-SAME: encoding: [0x08,0x00,0x00,0x01]
 	btst	#1, %d0
+	; CHECK:      btst  #0, %d3
+	; CHECK-SAME: encoding: [0x08,0x03,0x00,0x00]
 	btst	#0, %d3
-.Lfunc_end0:
-	.size	MxBTST_RI, .Lfunc_end0-MxBTST_RI
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+
