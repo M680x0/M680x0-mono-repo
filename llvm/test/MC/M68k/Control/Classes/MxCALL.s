@@ -1,3 +1,4 @@
+; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 	.text
 	.globl	MxCALL_PCI
 ; CHECK-LABEL: MxCALL_PCI:

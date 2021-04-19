@@ -1,3 +1,4 @@
+; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 	.text
 	.globl	MxBRA8
 ; CHECK-LABEL: MxBRA8:

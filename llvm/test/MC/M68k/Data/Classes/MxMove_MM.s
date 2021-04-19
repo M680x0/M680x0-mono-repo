@@ -1,3 +1,4 @@
+; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 	.text
 	.globl	MxMove_RM_ARI_PCI
 ; CHECK-LABEL: MxMove_RM_ARI_PCI:

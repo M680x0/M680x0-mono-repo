@@ -1,3 +1,4 @@
+; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 	.text
 	.globl	MxMOVEM_MR_ARID
 ; CHECK-LABEL: MxMOVEM_MR_ARID:

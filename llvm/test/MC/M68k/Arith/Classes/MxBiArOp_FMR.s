@@ -1,3 +1,4 @@
+; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 	.text
 	.globl	MxBiArOp_FMR_ARII
 ; CHECK-LABEL: MxBiArOp_FMR_ARII:

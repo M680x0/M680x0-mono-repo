@@ -1,3 +1,4 @@
+; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 	.text
 	.globl	MxBTST_MR_PCI
 ; CHECK-LABEL: MxBTST_MR_PCI:

@@ -1,3 +1,4 @@
+; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 	.text
 	.globl	MxMove_MI_ARII
 ; CHECK-LABEL: MxMove_MI_ARII:

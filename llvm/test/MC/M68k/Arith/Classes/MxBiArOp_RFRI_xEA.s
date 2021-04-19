@@ -1,3 +1,4 @@
+; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 	.text
 	.globl	MxBiArOp_RFRI_xEA
 ; CHECK-LABEL: MxBiArOp_RFRI_xEA:
