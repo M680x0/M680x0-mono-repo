@@ -1,9 +1,6 @@
 # RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
 # RUN:   | extract-section .text \
-# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=CMP8DF,CMP32DF
-# RUN: llc %s -mtriple=m68k -start-after=prologepilog -O0 -filetype=obj -o - \
-# RUN:   | extract-section .text \
-# RUN:   | FileCheck --dump-patterns --dump-pattern-append --dump-pattern-file=%s.patterns.json %s -check-prefixes=CMP8DP,CMP32DP,CMP8DJ,CMP32DJ
+# RUN:   | FileCheck --dump-patterns --dump-pattern-file=%s.patterns.json %s -check-prefixes=CMP8DF,CMP32DF,CMP8DK,CMP32DK,CMP8DQ,CMP32DQ,CMP8DP,CMP32DP,CMP8DJ,CMP32DJ
 
 #------------------------------------------------------------------------------
 # MxCMP_RM class used for compare operations and operates on memory data and

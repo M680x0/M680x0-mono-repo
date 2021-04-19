@@ -1,20 +1,29 @@
 	.text
-	.file	"MxDiMu.mir"
-	.globl	MxDiMu                          ; -- Begin function MxDiMu
-	.type	MxDiMu,@function
-MxDiMu:                                 ; @MxDiMu
-	.cfi_startproc
-; %bb.0:
+	.globl	MxDiMu
+; CHECK-LABEL: MxDiMu:
+MxDiMu:
+	; CHECK:      divs  %d1, %d0
+	; CHECK-SAME: encoding: [0x81,0xc1]
 	divs	%d1, %d0
+	; CHECK:      divu  %d1, %d0
+	; CHECK-SAME: encoding: [0x80,0xc1]
 	divu	%d1, %d0
+	; CHECK:      divs  #0, %d0
+	; CHECK-SAME: encoding: [0x81,0xfc,0x00,0x00]
 	divs	#0, %d0
+	; CHECK:      divu  #-1, %d0
+	; CHECK-SAME: encoding: [0x80,0xfc,0xff,0xff]
 	divu	#-1, %d0
+	; CHECK:      muls  %d1, %d0
+	; CHECK-SAME: encoding: [0xc1,0xc1]
 	muls	%d1, %d0
+	; CHECK:      mulu  %d1, %d0
+	; CHECK-SAME: encoding: [0xc0,0xc1]
 	mulu	%d1, %d0
+	; CHECK:      muls  #0, %d0
+	; CHECK-SAME: encoding: [0xc1,0xfc,0x00,0x00]
 	muls	#0, %d0
+	; CHECK:      mulu  #-1, %d0
+	; CHECK-SAME: encoding: [0xc0,0xfc,0xff,0xff]
 	mulu	#-1, %d0
-.Lfunc_end0:
-	.size	MxDiMu, .Lfunc_end0-MxDiMu
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+

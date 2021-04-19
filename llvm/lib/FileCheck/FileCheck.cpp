@@ -20,9 +20,11 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/CheckedArithmetic.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/Error.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/JSON.h"
+#include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/ToolOutputFile.h"
 #include <cstdint>
 #include <list>
@@ -1879,31 +1881,49 @@ class PatternDumpRAII {
   struct Pat {
     std::string PatternStr;
     unsigned LineNumber;
+
+    struct Less {
+      bool operator()(const Pat &lhs, const Pat &rhs) const {
+        return lhs.LineNumber < rhs.LineNumber ||
+               lhs.PatternStr.compare(rhs.PatternStr) == -1;
+      }
+    };
   };
-  std::vector<Pat> Patterns;
+
+  std::set<Pat, typename Pat::Less> Patterns;
+
+  bool readExistingPatternDump(StringRef Path);
 
 public:
   void push(StringRef Pattern, unsigned LineNumber) {
     if (DumpPatterns) {
-      Patterns.push_back(Pat{Pattern.str(), LineNumber});
+      Patterns.insert(Pat{Pattern.str(), LineNumber});
     }
   }
 
   ~PatternDumpRAII() {
     if (!DumpPatterns || Patterns.empty()) return;
-    std::error_code EC;
-    sys::fs::OpenFlags Flags = sys::fs::OF_Text;
+
     if (AppendPatternDump)
-      Flags |= sys::fs::OF_Append;
-    ToolOutputFile OF(PatternDumpPath, EC, Flags);
+      if (!readExistingPatternDump(PatternDumpPath))
+        return;
+
+    std::error_code EC;
+    ToolOutputFile OF(PatternDumpPath, EC, sys::fs::OF_Text);
     if (EC) {
       errs() << "Failed to open pattern dump file: " << EC.message() << "\n";
       return;
     }
 
+    std::vector<Pat> PatternList(Patterns.begin(), Patterns.end());
+    std::sort(PatternList.begin(), PatternList.end(),
+              [](const Pat &lhs, const Pat &rhs) {
+                return lhs.LineNumber < rhs.LineNumber;
+              });
+
     json::OStream JOS(OF.os(), 2);
     JOS.array([&] {
-      for (const auto &P : Patterns) {
+      for (const auto &P : PatternList) {
         JOS.object([&] {
           JOS.attribute("line", P.LineNumber);
           JOS.attribute("pattern", P.PatternStr);
@@ -1913,6 +1933,35 @@ public:
     OF.keep();
   }
 };
+
+bool PatternDumpRAII::readExistingPatternDump(StringRef Path) {
+  auto BufferOrErr = MemoryBuffer::getFile(Path, true);
+  if (!BufferOrErr) {
+    errs() << "Failed to open existing pattern dump file:";
+    errs() << BufferOrErr.getError().message() << "\n";
+    return false;
+  }
+  auto &Buffer = BufferOrErr.get();
+
+  auto JsonOrErr = json::parse(Buffer->getBuffer());
+  if (!JsonOrErr) {
+    handleAllErrors(std::move(JsonOrErr.takeError()),
+                    [&](const ErrorInfoBase &E) {
+                      E.log(errs() << "Failed to parse existing pattern dump file: ");
+                      errs() << "\n";
+                    });
+    return false;
+  }
+  auto *PatJsonArray = JsonOrErr.get().getAsArray();
+  for (const json::Value &Entry : *PatJsonArray) {
+    const auto *EntryObj = Entry.getAsObject();
+    auto MaybeLineNumber = EntryObj->getInteger("line");
+    auto MaybePattern = EntryObj->getString("pattern");
+    if (MaybeLineNumber && MaybePattern)
+      push(*MaybePattern, (unsigned)*MaybeLineNumber);
+  }
+  return true;
+}
 } // end anonymous namespace
 
 bool FileCheck::readCheckFile(

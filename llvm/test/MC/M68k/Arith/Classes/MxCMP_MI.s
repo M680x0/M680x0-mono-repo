@@ -1,68 +1,81 @@
 	.text
-	.file	"MxCMP_MI.mir"
-	.globl	MxCMP_MI_PCI                    ; -- Begin function MxCMP_MI_PCI
-	.type	MxCMP_MI_PCI,@function
-MxCMP_MI_PCI:                           ; @MxCMP_MI_PCI
-	.cfi_startproc
-; %bb.0:
+	.globl	MxCMP_MI_PCI
+; CHECK-LABEL: MxCMP_MI_PCI:
+MxCMP_MI_PCI:
+	; CHECK:      cmpi.b  #0, (-1,%pc,%d1)
+	; CHECK-SAME: encoding: [0x0c,0x3b,0x00,0x00,0x18,0xff]
 	cmpi.b	#0, (-1,%pc,%d1)
+	; CHECK:      cmpi.b  #-1, (0,%pc,%d0)
+	; CHECK-SAME: encoding: [0x0c,0x3b,0x00,0xff,0x08,0x00]
 	cmpi.b	#-1, (0,%pc,%d0)
+	; CHECK:      cmpi.l  #-1, (0,%pc,%d7)
+	; CHECK-SAME: encoding: [0x0c,0xbb,0xff,0xff,0xff,0xff,0x78,0x00]
 	cmpi.l	#-1, (0,%pc,%d7)
+	; CHECK:      cmpi.l  #42, (-1,%pc,%d1)
+	; CHECK-SAME: encoding: [0x0c,0xbb,0x00,0x00,0x00,0x2a,0x18,0xff]
 	cmpi.l	#42, (-1,%pc,%d1)
-.Lfunc_end0:
-	.size	MxCMP_MI_PCI, .Lfunc_end0-MxCMP_MI_PCI
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxCMP_MI_PCD                    ; -- Begin function MxCMP_MI_PCD
-	.type	MxCMP_MI_PCD,@function
-MxCMP_MI_PCD:                           ; @MxCMP_MI_PCD
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxCMP_MI_PCD
+; CHECK-LABEL: MxCMP_MI_PCD:
+MxCMP_MI_PCD:
+	; CHECK:      cmpi.b  #0, (0,%pc)
+	; CHECK-SAME: encoding: [0x0c,0x3a,0x00,0x00,0x00,0x00]
 	cmpi.b	#0, (0,%pc)
+	; CHECK:      cmpi.b  #-1, (-1,%pc)
+	; CHECK-SAME: encoding: [0x0c,0x3a,0x00,0xff,0xff,0xff]
 	cmpi.b	#-1, (-1,%pc)
+	; CHECK:      cmpi.l  #-1, (0,%pc)
+	; CHECK-SAME: encoding: [0x0c,0xba,0xff,0xff,0xff,0xff,0x00,0x00]
 	cmpi.l	#-1, (0,%pc)
+	; CHECK:      cmpi.l  #42, (0,%pc)
+	; CHECK-SAME: encoding: [0x0c,0xba,0x00,0x00,0x00,0x2a,0x00,0x00]
 	cmpi.l	#42, (0,%pc)
-.Lfunc_end1:
-	.size	MxCMP_MI_PCD, .Lfunc_end1-MxCMP_MI_PCD
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxCMP_MI_ARII                   ; -- Begin function MxCMP_MI_ARII
-	.type	MxCMP_MI_ARII,@function
-MxCMP_MI_ARII:                          ; @MxCMP_MI_ARII
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxCMP_MI_ARII
+; CHECK-LABEL: MxCMP_MI_ARII:
+MxCMP_MI_ARII:
+	; CHECK:      cmpi.b  #0, (-1,%a1,%a0)
+	; CHECK-SAME: encoding: [0x0c,0x31,0x00,0x00,0x88,0xff]
 	cmpi.b	#0, (-1,%a1,%a0)
+	; CHECK:      cmpi.b  #-1, (0,%a0,%a0)
+	; CHECK-SAME: encoding: [0x0c,0x30,0x00,0xff,0x88,0x00]
 	cmpi.b	#-1, (0,%a0,%a0)
+	; CHECK:      cmpi.l  #-1, (0,%a6,%a0)
+	; CHECK-SAME: encoding: [0x0c,0xb6,0xff,0xff,0xff,0xff,0x88,0x00]
 	cmpi.l	#-1, (0,%a6,%a0)
+	; CHECK:      cmpi.l  #42, (-1,%a1,%a0)
+	; CHECK-SAME: encoding: [0x0c,0xb1,0x00,0x00,0x00,0x2a,0x88,0xff]
 	cmpi.l	#42, (-1,%a1,%a0)
-.Lfunc_end2:
-	.size	MxCMP_MI_ARII, .Lfunc_end2-MxCMP_MI_ARII
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxCMP_MI_ARID                   ; -- Begin function MxCMP_MI_ARID
-	.type	MxCMP_MI_ARID,@function
-MxCMP_MI_ARID:                          ; @MxCMP_MI_ARID
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxCMP_MI_ARID
+; CHECK-LABEL: MxCMP_MI_ARID:
+MxCMP_MI_ARID:
+	; CHECK:      cmpi.b  #0, (-1,%a1)
+	; CHECK-SAME: encoding: [0x0c,0x29,0x00,0x00,0xff,0xff]
 	cmpi.b	#0, (-1,%a1)
+	; CHECK:      cmpi.b  #-1, (0,%a0)
+	; CHECK-SAME: encoding: [0x0c,0x28,0x00,0xff,0x00,0x00]
 	cmpi.b	#-1, (0,%a0)
+	; CHECK:      cmpi.l  #-1, (0,%a6)
+	; CHECK-SAME: encoding: [0x0c,0xae,0xff,0xff,0xff,0xff,0x00,0x00]
 	cmpi.l	#-1, (0,%a6)
+	; CHECK:      cmpi.l  #42, (-1,%a1)
+	; CHECK-SAME: encoding: [0x0c,0xa9,0x00,0x00,0x00,0x2a,0xff,0xff]
 	cmpi.l	#42, (-1,%a1)
-.Lfunc_end3:
-	.size	MxCMP_MI_ARID, .Lfunc_end3-MxCMP_MI_ARID
-	.cfi_endproc
-                                        ; -- End function
-	.globl	MxCMP_MI_ARI                    ; -- Begin function MxCMP_MI_ARI
-	.type	MxCMP_MI_ARI,@function
-MxCMP_MI_ARI:                           ; @MxCMP_MI_ARI
-	.cfi_startproc
-; %bb.0:
+
+	.globl	MxCMP_MI_ARI
+; CHECK-LABEL: MxCMP_MI_ARI:
+MxCMP_MI_ARI:
+	; CHECK:      cmpi.b  #0, (%a1)
+	; CHECK-SAME: encoding: [0x0c,0x11,0x00,0x00]
 	cmpi.b	#0, (%a1)
+	; CHECK:      cmpi.b  #-1, (%a0)
+	; CHECK-SAME: encoding: [0x0c,0x10,0x00,0xff]
 	cmpi.b	#-1, (%a0)
+	; CHECK:      cmpi.l  #-1, (%a6)
+	; CHECK-SAME: encoding: [0x0c,0x96,0xff,0xff]
 	cmpi.l	#-1, (%a6)
+	; CHECK:      cmpi.l  #42, (%a1)
+	; CHECK-SAME: encoding: [0x0c,0x91,0x00,0x2a]
 	cmpi.l	#42, (%a1)
-.Lfunc_end4:
-	.size	MxCMP_MI_ARI, .Lfunc_end4-MxCMP_MI_ARI
-	.cfi_endproc
-                                        ; -- End function
-	.section	".note.GNU-stack","",@progbits
+
