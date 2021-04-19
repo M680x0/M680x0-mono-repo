@@ -100,13 +100,13 @@ MxMove_RM_ARI:
 	.globl	MxMove_RM_ABS
 ; CHECK-LABEL: MxMove_RM_ABS:
 MxMove_RM_ABS:
-	; CHECK:      move.b  0, %d0
+	; CHECK:      move.b  $0, %d0
 	; CHECK-SAME: encoding: [0x10,0x39,0x00,0x00]
-	move.b	0, %d0
-	; CHECK:      move.l  0, %d3
+	move.b	$0, %d0
+	; CHECK:      move.l  $0, %d3
 	; CHECK-SAME: encoding: [0x26,0x39,0x00,0x00,0x00,0x00]
-	move.l	0, %d3
-	; CHECK:      move.l  0, %a4
+	move.l	$0, %d3
+	; CHECK:      move.l  $0, %a4
 	; CHECK-SAME: encoding: [0x28,0x79,0x00,0x00,0x00,0x00]
-	move.l	0, %a4
+	move.l	$0, %a4
 

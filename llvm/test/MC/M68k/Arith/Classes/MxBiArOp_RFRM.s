@@ -1,6 +1,5 @@
 ; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
-        .text
-
+	.text
 	.globl	MxBiArOp_RFRM_PCI
 ; CHECK-LABEL: MxBiArOp_RFRM_PCI:
 MxBiArOp_RFRM_PCI:
@@ -62,3 +61,4 @@ MxBiArOp_RFRM_ARI:
 	; CHECK:      add.l  (%a1), %a3
 	; CHECK-SAME: encoding: [0xd7,0xd1]
 	add.l	(%a1), %a3
+

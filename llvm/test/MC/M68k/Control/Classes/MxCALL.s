@@ -26,12 +26,12 @@ MxCALL_PCD:
 	.globl	MxCALL_ABS
 ; CHECK-LABEL: MxCALL_ABS:
 MxCALL_ABS:
-	; CHECK:      jsr  42
+	; CHECK:      jsr  $2a
 	; CHECK-SAME: encoding: [0x4e,0xb9,0x00,0x00,0x00,0x2a]
-	jsr	42
-	; CHECK:      jsr  4294967295
+	jsr	$2a
+	; CHECK:      jsr  $ffffffffffffffff
 	; CHECK-SAME: encoding: [0x4e,0xb9,0xff,0xff,0xff,0xff]
-	jsr	4294967295
+	jsr	$ffffffffffffffff
 
 	.globl	MxCALL_ARI
 ; CHECK-LABEL: MxCALL_ARI:

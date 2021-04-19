@@ -3,23 +3,23 @@
 	.globl	MxBRA8
 ; CHECK-LABEL: MxBRA8:
 MxBRA8:
-	; CHECK:      bra  #1
+	; CHECK:      bra  $1
 	; CHECK-SAME: encoding: [0x60,0x01]
-	bra	#1
-	; CHECK:      bra  #42
+	bra	$1
+	; CHECK:      bra  $2a
 	; CHECK-SAME: encoding: [0x60,0x2a]
-	bra	#42
+	bra	$2a
 
 	.globl	MxBRA16
 ; CHECK-LABEL: MxBRA16:
 MxBRA16:
-	; CHECK:      bra  #0
+	; CHECK:      bra  $0
 	; CHECK-SAME: encoding: [0x60,0x00,0x00,0x00]
-	bra	#0
-	; CHECK:      bra  #-1
+	bra	$0
+	; CHECK:      bra  $ffffffffffffffff
 	; CHECK-SAME: encoding: [0x60,0x00,0xff,0xff]
-	bra	#-1
-	; CHECK:      bra  #42
+	bra	$ffffffffffffffff
+	; CHECK:      bra  $2a
 	; CHECK-SAME: encoding: [0x60,0x00,0x00,0x2a]
-	bra	#42
+	bra	$2a
 
