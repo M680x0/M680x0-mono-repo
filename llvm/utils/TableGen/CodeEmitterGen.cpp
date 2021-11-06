@@ -21,6 +21,7 @@
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/TableGen/Error.h"
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/TableGenBackend.h"
 #include <cassert>
@@ -48,7 +49,15 @@ private:
   std::string getInstructionCase(Record *R, CodeGenTarget &Target);
   std::string getInstructionCaseForEncoding(Record *R, Record *EncodingDef,
                                             CodeGenTarget &Target);
-  void AddCodeToMergeInOperand(Record *R, BitsInit *BI,
+  void addMIOperandExtractionCode(CodeGenInstruction &CGI,
+                                  const std::string &VarName, unsigned OpIdx,
+                                  std::string &Case);
+  void addBitRangeCode(unsigned BeginVarBit, unsigned BeginInstBit,
+                       unsigned N, unsigned NumOperandLits, std::string &Case);
+  void mergeStringInitOperand(Record *R, StringInit *SI,
+                              const std::string &VarName,
+                              std::string &Case, CodeGenTarget &Target);
+  void mergePlaceholderOperand(Record *R, BitsInit *BI,
                                const std::string &VarName,
                                unsigned &NumberedOp,
                                std::set<unsigned> &NamedOpIndices,
@@ -77,8 +86,96 @@ int CodeEmitterGen::getVariableBit(const std::string &VarName,
   return -1;
 }
 
+void CodeEmitterGen::addMIOperandExtractionCode(CodeGenInstruction &CGI,
+                                                const std::string &VarName,
+                                                unsigned OpIdx,
+                                                std::string &Case) {
+  std::pair<unsigned, unsigned> SO = CGI.Operands.getSubOperandNumber(OpIdx);
+  std::string &EncoderMethodName = CGI.Operands[SO.first].EncoderMethodName;
+
+  if (UseAPInt)
+    Case += "      op.clearAllBits();\n";
+
+  // If the source operand has a custom encoder, use it. This will
+  // get the encoding for all of the suboperands.
+  if (!EncoderMethodName.empty()) {
+    // A custom encoder has all of the information for the
+    // sub-operands, if there are more than one, so only
+    // query the encoder once per source operand.
+    if (SO.second == 0) {
+      Case += "      // op: " + VarName + "\n";
+      if (UseAPInt) {
+        Case += "      " + EncoderMethodName + "(MI, " + utostr(OpIdx);
+        Case += ", op";
+      } else {
+        Case += "      op = " + EncoderMethodName + "(MI, " + utostr(OpIdx);
+      }
+      Case += ", Fixups, STI);\n";
+    }
+  } else {
+    Case += "      // op: " + VarName + "\n";
+    if (UseAPInt) {
+      Case += "      getMachineOpValue(MI, MI.getOperand(" + utostr(OpIdx) + ")";
+      Case += ", op, Fixups, STI";
+    } else {
+      Case += "      op = getMachineOpValue(MI, MI.getOperand(" + utostr(OpIdx) + ")";
+      Case += ", Fixups, STI";
+    }
+    Case += ");\n";
+  }
+}
+
+void CodeEmitterGen::addBitRangeCode(unsigned BeginVarBit,
+                                     unsigned BeginInstBit,
+                                     unsigned N, unsigned NumOperandLits,
+                                     std::string &Case) {
+  unsigned loBit = BeginVarBit - N + 1;
+  unsigned hiBit = loBit + N;
+  unsigned loInstBit = BeginInstBit - N + 1;
+  if (UseAPInt) {
+    std::string extractStr;
+    if (N >= 64) {
+      extractStr = "op.extractBits(" + itostr(hiBit - loBit) + ", " +
+                   itostr(loBit) + ")";
+      Case += "      Value.insertBits(" + extractStr + ", " +
+              itostr(loInstBit) + ");\n";
+    } else {
+      extractStr = "op.extractBitsAsZExtValue(" + itostr(hiBit - loBit) +
+                   ", " + itostr(loBit) + ")";
+      Case += "      Value.insertBits(" + extractStr + ", " +
+              itostr(loInstBit) + ", " + itostr(hiBit - loBit) + ");\n";
+    }
+  } else {
+    uint64_t opMask = ~(uint64_t)0 >> (64 - N);
+    int opShift = BeginVarBit - N + 1;
+    opMask <<= opShift;
+    std::string maskStr = "UINT64_C(" + utostr(opMask) + ")";
+    opShift = BeginInstBit - BeginVarBit;
+
+    if (NumOperandLits == 1) {
+      Case += "      op &= " + maskStr + ";\n";
+      if (opShift > 0) {
+        Case += "      op <<= " + itostr(opShift) + ";\n";
+      } else if (opShift < 0) {
+        Case += "      op >>= " + itostr(-opShift) + ";\n";
+      }
+      Case += "      Value |= op;\n";
+    } else {
+      if (opShift > 0) {
+        Case += "      Value |= (op & " + maskStr + ") << " +
+                itostr(opShift) + ";\n";
+      } else if (opShift < 0) {
+        Case += "      Value |= (op & " + maskStr + ") >> " +
+                itostr(-opShift) + ";\n";
+      } else {
+        Case += "      Value |= (op & " + maskStr + ");\n";
+      }
+    }
+  }
+}
+
 void CodeEmitterGen::
-AddCodeToMergeInOperand(Record *R, BitsInit *BI, const std::string &VarName,
+mergePlaceholderOperand(Record *R, BitsInit *BI, const std::string &VarName,
                         unsigned &NumberedOp,
                         std::set<unsigned> &NamedOpIndices,
                         std::string &Case, CodeGenTarget &Target) {
@@ -131,40 +228,8 @@ AddCodeToMergeInOperand(Record *R, BitsInit *BI, const std::string &VarName,
 
     OpIdx = NumberedOp++;
   }
-  
-  std::pair<unsigned, unsigned> SO = CGI.Operands.getSubOperandNumber(OpIdx);
-  std::string &EncoderMethodName = CGI.Operands[SO.first].EncoderMethodName;
 
-  if (UseAPInt)
-    Case += "      op.clearAllBits();\n";
-
-  // If the source operand has a custom encoder, use it. This will
-  // get the encoding for all of the suboperands.
-  if (!EncoderMethodName.empty()) {
-    // A custom encoder has all of the information for the
-    // sub-operands, if there are more than one, so only
-    // query the encoder once per source operand.
-    if (SO.second == 0) {
-      Case += "      // op: " + VarName + "\n";
-      if (UseAPInt) {
-        Case += "      " + EncoderMethodName + "(MI, " + utostr(OpIdx);
-        Case += ", op";
-      } else {
-        Case += "      op = " + EncoderMethodName + "(MI, " + utostr(OpIdx);
-      }
-      Case += ", Fixups, STI);\n";
-    }
-  } else {
-    Case += "      // op: " + VarName + "\n";
-    if (UseAPInt) {
-      Case += "      getMachineOpValue(MI, MI.getOperand(" + utostr(OpIdx) + ")";
-      Case += ", op, Fixups, STI";
-    } else {
-      Case += "      op = getMachineOpValue(MI, MI.getOperand(" + utostr(OpIdx) + ")";
-      Case += ", Fixups, STI";
-    }
-    Case += ");\n";
-  }
+  addMIOperandExtractionCode(CGI, VarName, OpIdx, Case);
 
   // Precalculate the number of lits this variable contributes to in the
   // operand. If there is a single lit (consecutive range of bits) we can use a
@@ -214,53 +279,35 @@ AddCodeToMergeInOperand(Record *R, BitsInit *BI, const std::string &VarName,
       --bit;
     }
 
-    std::string maskStr;
-    int opShift;
-
-    unsigned loBit = beginVarBit - N + 1;
-    unsigned hiBit = loBit + N;
-    unsigned loInstBit = beginInstBit - N + 1;
-    if (UseAPInt) {
-      std::string extractStr;
-      if (N >= 64) {
-        extractStr = "op.extractBits(" + itostr(hiBit - loBit) + ", " +
-                     itostr(loBit) + ")";
-        Case += "      Value.insertBits(" + extractStr + ", " +
-                itostr(loInstBit) + ");\n";
-      } else {
-        extractStr = "op.extractBitsAsZExtValue(" + itostr(hiBit - loBit) +
-                     ", " + itostr(loBit) + ")";
-        Case += "      Value.insertBits(" + extractStr + ", " +
-                itostr(loInstBit) + ", " + itostr(hiBit - loBit) + ");\n";
-      }
-    } else {
-      uint64_t opMask = ~(uint64_t)0 >> (64 - N);
-      opShift = beginVarBit - N + 1;
-      opMask <<= opShift;
-      maskStr = "UINT64_C(" + utostr(opMask) + ")";
-      opShift = beginInstBit - beginVarBit;
-
-      if (numOperandLits == 1) {
-        Case += "      op &= " + maskStr + ";\n";
-        if (opShift > 0) {
-          Case += "      op <<= " + itostr(opShift) + ";\n";
-        } else if (opShift < 0) {
-          Case += "      op >>= " + itostr(-opShift) + ";\n";
-        }
-        Case += "      Value |= op;\n";
-      } else {
-        if (opShift > 0) {
-          Case += "      Value |= (op & " + maskStr + ") << " +
-                  itostr(opShift) + ";\n";
-        } else if (opShift < 0) {
-          Case += "      Value |= (op & " + maskStr + ") >> " +
-                  itostr(-opShift) + ";\n";
-        } else {
-          Case += "      Value |= (op & " + maskStr + ");\n";
-        }
-      }
-    }
+    addBitRangeCode(beginVarBit, beginInstBit, N, numOperandLits, Case);
   }
+}
+
+void CodeEmitterGen::mergeStringInitOperand(Record *R, StringInit *SI,
+                                            const std::string &VarName,
+                                            std::string &Case,
+                                            CodeGenTarget &Target) {
+  assert(StringRef(VarName).startswith("Inst_"));
+  CodeGenInstruction &CGI = Target.getInstruction(R);
+
+  auto BitRangeStr = StringRef(VarName).drop_front(5);
+  StringRef LoBitStr, HiBitStr;
+  std::tie(LoBitStr, HiBitStr) = BitRangeStr.split('_');
+  unsigned LoBit, HiBit;
+  if (LoBitStr.getAsInteger(10, HiBit) ||
+      HiBitStr.getAsInteger(10, LoBit))
+    PrintFatalError(R->getLoc(),
+                    StringRef(VarName) + ": unrecognized bit range");
+  // TODO: Check if the bit range goes out-of-bound.
+
+  std::string RefVarStr = SI->getValue().str();
+  auto OpIdxPair = CGI.Operands.ParseOperandName(RefVarStr);
+  auto FlattenOpIdx = CGI.Operands.getFlattenedOperandNumber(OpIdxPair);
+
+  // Remove the prefix '$'.
+  RefVarStr.erase(RefVarStr.begin());
+  addMIOperandExtractionCode(CGI, RefVarStr, FlattenOpIdx, Case);
+  addBitRangeCode(HiBit - LoBit, HiBit, HiBit - LoBit + 1, 1, Case);
 }
 
 std::string CodeEmitterGen::getInstructionCase(Record *R,
@@ -309,13 +356,18 @@ std::string CodeEmitterGen::getInstructionCaseForEncoding(Record *R, Record *Enc
   // Loop over all of the fields in the instruction, determining which are the
   // operands to the instruction.
   for (const RecordVal &RV : EncodingDef->getValues()) {
-    // Ignore fixed fields in the record, we're looking for values like:
-    //    bits<5> RST = { ?, ?, ?, ?, ? };
-    if (RV.isNonconcreteOK() || RV.getValue()->isComplete())
-      continue;
+    if (RV.getName().startswith("Inst_") && isa<StringInit>(RV.getValue()))
+      mergeStringInitOperand(R, cast<StringInit>(RV.getValue()),
+                             std::string(RV.getName()), Case, Target);
+    else {
+      // Ignore fixed fields in the record, we're looking for values like:
+      //    bits<5> RST = { ?, ?, ?, ?, ? };
+      if (RV.isNonconcreteOK() || RV.getValue()->isComplete())
+        continue;
 
-    AddCodeToMergeInOperand(R, BI, std::string(RV.getName()), NumberedOp,
-                            NamedOpIndices, Case, Target);
+      mergePlaceholderOperand(R, BI, std::string(RV.getName()), NumberedOp,
+                              NamedOpIndices, Case, Target);
+    }
   }
 
   StringRef PostEmitter = R->getValueAsString("PostEncoderMethod");
