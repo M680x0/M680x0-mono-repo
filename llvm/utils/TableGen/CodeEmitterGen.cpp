@@ -86,6 +86,19 @@ int CodeEmitterGen::getVariableBit(const std::string &VarName,
   return -1;
 }
 
+static
+std::pair<unsigned,unsigned> parseInstBitRange(StringRef VarName,
+                                               ArrayRef<SMLoc> Locs = {}) {
+  assert(VarName.startswith("Inst_"));
+  auto BitRangeStr = VarName.drop_front(5);
+  StringRef HiBitStr, LoBitStr;
+  std::tie(HiBitStr, LoBitStr) = BitRangeStr.split('_');
+  unsigned HiBit, LoBit;
+  if (HiBitStr.getAsInteger(10, HiBit) || LoBitStr.getAsInteger(10, LoBit))
+    PrintFatalError(Locs, "Unrecognized bit range var: " + VarName);
+  return std::make_pair(HiBit, LoBit);
+}
+
 void CodeEmitterGen::addMIOperandExtractionCode(CodeGenInstruction &CGI,
                                                 const std::string &VarName,
                                                 unsigned OpIdx,
@@ -287,17 +300,10 @@ void CodeEmitterGen::mergeStringInitOperand(Record *R, StringInit *SI,
                                             const std::string &VarName,
                                             std::string &Case,
                                             CodeGenTarget &Target) {
-  assert(StringRef(VarName).startswith("Inst_"));
   CodeGenInstruction &CGI = Target.getInstruction(R);
 
-  auto BitRangeStr = StringRef(VarName).drop_front(5);
-  StringRef LoBitStr, HiBitStr;
-  std::tie(LoBitStr, HiBitStr) = BitRangeStr.split('_');
   unsigned LoBit, HiBit;
-  if (LoBitStr.getAsInteger(10, HiBit) ||
-      HiBitStr.getAsInteger(10, LoBit))
-    PrintFatalError(R->getLoc(),
-                    StringRef(VarName) + ": unrecognized bit range");
+  std::tie(HiBit, LoBit) = parseInstBitRange(VarName, R->getLoc());
   // TODO: Check if the bit range goes out-of-bound.
 
   std::string RefVarStr = SI->getValue().str();
@@ -430,6 +436,27 @@ void CodeEmitterGen::emitInstructionBaseValues(
     for (unsigned i = 0, e = BI->getNumBits(); i != e; ++i) {
       if (BitInit *B = dyn_cast<BitInit>(BI->getBit(e - i - 1)))
         Value |= APInt(BitWidth, (uint64_t)B->getValue()) << (e - i - 1);
+    }
+
+    for (const RecordVal &Field : EncodingDef->getValues()) {
+      if (Field.getName().startswith("Inst_") &&
+          isa<BitsInit>(Field.getValue())) {
+        const auto *FieldBI = cast<BitsInit>(Field.getValue());
+        if (!FieldBI->isComplete())
+          continue;
+        unsigned HiBit, LoBit;
+        std::tie(HiBit, LoBit)
+          = parseInstBitRange(Field.getName(), EncodingDef->getLoc());
+        if (HiBit < LoBit || HiBit >= BI->getNumBits() ||
+            (HiBit - LoBit + 1) != FieldBI->getNumBits())
+          PrintFatalError(EncodingDef->getLoc(),
+                          "Instruction bit range out-of-bound / mismatch: "
+                          + Field.getName());
+        for (unsigned i = 0U, e = FieldBI->getNumBits(); i != e; ++i) {
+          const auto *B = cast<BitInit>(FieldBI->getBit(i));
+          Value.setBitVal(i + LoBit, B->getValue());
+        }
+      }
     }
     o << "    ";
     emitInstBits(o, Value);
