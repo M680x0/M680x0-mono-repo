@@ -144,6 +144,21 @@ class MxBiArOp_RFRI_xEA<string MN, SDNode NODE, MxType TYPE, bits<4> CMD>
                              MxBeadDReg<0>, MxEncEAi,
                              !cast<MxEncExt>("MxExtI"#TYPE.Size#"_2")>>;
 
+class MxBiArOp_R_RI_xEA<string MN, SDNode NODE, MxType TYPE, bits<4> CMD>
+    : MxInst<(outs TYPE.ROp:$dst), (ins TYPE.ROp:$src, TYPE.IOp:$opd),
+             MN#"."#TYPE.Prefix#"\t$opd, $dst",
+             [(set TYPE.VT:$dst, CCR, (NODE TYPE.VT:$src, TYPE.IPat:$opd))]> {
+  bits<3> dst;
+
+  // CMD
+  let Inst{15-12} = CMD;
+  // REGISTER
+  let Inst{11-9} = dst;
+  // OPMODE
+  let Inst{8-6}
+    = !cast<MxOpModeEncoding>("MxOpMode"#TYPE.Size#"_"#TYPE.RLet#"_EA").Value;
+}
+
 // Again, there are two ways to write an immediate to Dn register either dEA
 // opmode or using *I encoding, and again some instrucitons also support address
 // registers some do not.
@@ -198,6 +213,22 @@ class MxBiArOp_FMR<string MN, SDNode NODE, MxType TYPE,
                              !cast<MxEncOpMode>("MxOpMode"#TYPE.Size#"EA"#TYPE.RLet),
                              MxBeadDReg<1>, EA, EXT>>;
 
+class MxBiArOp_MR<string MN, SDNode NODE, MxType TYPE,
+                  MxOperand MEMOpd, ComplexPattern MEMPat,
+                  bits<4> CMD>
+    : MxInst<(outs), (ins MEMOpd:$dst, TYPE.ROp:$opd),
+             MN#"."#TYPE.Prefix#"\t$opd, $dst", []> {
+  bits<3> opd;
+
+  // CMD
+  let Inst{15-12} = CMD;
+  // REGISTER
+  let Inst{11-9} = opd;
+  // OPMODE
+  let Inst{8-6}
+    = !cast<MxOpModeEncoding>("MxOpMode"#TYPE.Size#"_EA_"#TYPE.RLet).Value;
+}
+
 class MxBiArOp_FMI<string MN, SDNode NODE, MxType TYPE,
                    MxOperand MEMOpd, ComplexPattern MEMPat,
                    bits<4> CMD, MxEncEA MEMEA, MxEncExt MEMExt>
@@ -214,8 +245,8 @@ class MxBiArOp_FMI<string MN, SDNode NODE, MxType TYPE,
 multiclass MxBiArOp_DF<string MN, SDNode NODE, bit isComm,
                        bits<4> CMD, bits<4> CMDI> {
 
-  // op $mem, $reg
   foreach SZ = [8, 16, 32] in {
+    // op $mem, $reg
     def NAME#SZ#"dq"  : MxBiArOp_R_RM<MN, NODE,
                                       !cast<MxType>("MxType"#SZ#"d"),
                                       !cast<MxType>("MxType"#SZ).QOp,
@@ -239,41 +270,40 @@ multiclass MxBiArOp_DF<string MN, SDNode NODE, bit isComm,
                                       !cast<MxType>("MxType"#SZ).FOp,
                                       !cast<MxType>("MxType"#SZ).FPat,
                                       CMD>, MxEncAddrMode_f<"opd">;
+
+    def NAME#SZ#"dj"  : MxBiArOp_R_RM<MN, NODE,
+                                      !cast<MxType>("MxType"#SZ#"d"),
+                                      !cast<MxType>("MxType"#SZ).JOp,
+                                      !cast<MxType>("MxType"#SZ).JPat,
+                                      CMD>, MxEncAddrMode_j<"opd">;
+
+    // op $reg, $mem
+    def NAME#SZ#"pd"  : MxBiArOp_MR<MN, NODE,
+                                    !cast<MxType>("MxType"#SZ#"d"),
+                                    !cast<MxType>("MxType"#SZ).POp,
+                                    !cast<MxType>("MxType"#SZ).PPat,
+                                    CMD>, MxEncAddrMode_p<"dst">;
+
+    def NAME#SZ#"fd"  : MxBiArOp_MR<MN, NODE,
+                                    !cast<MxType>("MxType"#SZ#"d"),
+                                    !cast<MxType>("MxType"#SZ).FOp,
+                                    !cast<MxType>("MxType"#SZ).FPat,
+                                    CMD>, MxEncAddrMode_f<"dst">;
+
+    def NAME#SZ#"jd"  : MxBiArOp_MR<MN, NODE,
+                                    !cast<MxType>("MxType"#SZ#"d"),
+                                    !cast<MxType>("MxType"#SZ).JOp,
+                                    !cast<MxType>("MxType"#SZ).JPat,
+                                    CMD>, MxEncAddrMode_j<"dst">;
   } // foreach SZ
 
-  def NAME#"8dj"  : MxBiArOp_RFRM<MN, NODE, MxType8d,  MxType8.JOp,  MxType8.JPat,
-                                  CMD, MxEncEAj_2, MxExtEmpty>;
-  def NAME#"16dj" : MxBiArOp_RFRM<MN, NODE, MxType16d, MxType16.JOp, MxType16.JPat,
-                                  CMD, MxEncEAj_2, MxExtEmpty>;
-  def NAME#"32dj" : MxBiArOp_RFRM<MN, NODE, MxType32d, MxType32.JOp, MxType32.JPat,
-                                  CMD, MxEncEAj_2, MxExtEmpty>;
-
   // op $imm, $reg
-  def NAME#"8di"  : MxBiArOp_RFRI_xEA<MN, NODE, MxType8d,  CMD>;
-  def NAME#"16di" : MxBiArOp_RFRI_xEA<MN, NODE, MxType16d, CMD>;
-  def NAME#"32di" : MxBiArOp_RFRI_xEA<MN, NODE, MxType32d, CMD>;
-
-  // op $reg, $mem
-  def NAME#"8pd"  : MxBiArOp_FMR<MN, NODE, MxType8d,  MxType8.POp,  MxType8.PPat,
-                                 CMD, MxEncEAp_0, MxExtI16_0>;
-  def NAME#"16pd" : MxBiArOp_FMR<MN, NODE, MxType16d, MxType16.POp, MxType16.PPat,
-                                 CMD, MxEncEAp_0, MxExtI16_0>;
-  def NAME#"32pd" : MxBiArOp_FMR<MN, NODE, MxType32d, MxType32.POp, MxType32.PPat,
-                                 CMD, MxEncEAp_0, MxExtI16_0>;
-
-  def NAME#"8fd"  : MxBiArOp_FMR<MN, NODE, MxType8d,  MxType8.FOp,  MxType8.FPat,
-                                 CMD, MxEncEAf_0, MxExtBrief_0>;
-  def NAME#"16fd" : MxBiArOp_FMR<MN, NODE, MxType16d, MxType16.FOp, MxType16.FPat,
-                                 CMD, MxEncEAf_0, MxExtBrief_0>;
-  def NAME#"32fd" : MxBiArOp_FMR<MN, NODE, MxType32d, MxType32.FOp, MxType32.FPat,
-                                 CMD, MxEncEAf_0, MxExtBrief_0>;
-
-  def NAME#"8jd"  : MxBiArOp_FMR<MN, NODE, MxType8d,  MxType8.JOp,  MxType8.JPat,
-                                 CMD, MxEncEAj_0, MxExtEmpty>;
-  def NAME#"16jd" : MxBiArOp_FMR<MN, NODE, MxType16d, MxType16.JOp, MxType16.JPat,
-                                 CMD, MxEncEAj_0, MxExtEmpty>;
-  def NAME#"32jd" : MxBiArOp_FMR<MN, NODE, MxType32d, MxType32.JOp, MxType32.JPat,
-                                 CMD, MxEncEAj_0, MxExtEmpty>;
+  def NAME#"8di"   : MxBiArOp_R_RI_xEA<MN, NODE, MxType8d, CMD>,
+                     MxEncAddrMode_i8<"opd">;
+  def NAME#"16di"  : MxBiArOp_R_RI_xEA<MN, NODE, MxType16d, CMD>,
+                     MxEncAddrMode_i16<"opd">;
+  def NAME#"32di"  : MxBiArOp_R_RI_xEA<MN, NODE, MxType32d, CMD>,
+                     MxEncAddrMode_i32<"opd">;
 
   // op $imm, $mem
   def NAME#"8pi"  : MxBiArOp_FMI<MN, NODE, MxType8,  MxType8.POp,  MxType8.PPat,

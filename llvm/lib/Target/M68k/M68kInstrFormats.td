@@ -237,6 +237,13 @@ def MxEncEAq : MxEncEA<MxBead3Bits<0b010>, MxBead2Bits<0b11>, MxBead1Bit<1>>;
 def MxEncEAk : MxEncEA<MxBead3Bits<0b011>, MxBead2Bits<0b11>, MxBead1Bit<1>>;
 def MxEncEAi : MxEncEA<MxBead3Bits<0b100>, MxBead2Bits<0b11>, MxBead1Bit<1>>;
 
+class MxEncAddrMode_d<string reg_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b000;
+  // REG
+  string Inst_2_0 = "$"#reg_name;
+}
+
 class MxEncAddrMode_p<string opnd_name> {
   // MODE
   bits<3> Inst_5_3 = 0b101;
@@ -295,6 +302,43 @@ class MxEncAddrMode_f<string opnd_name> {
 
   // Displacement
   string Inst_23_16 = "$"#opnd_name#".disp";
+}
+
+class MxEncAddrMode_j<string reg_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b010;
+  // REG
+  string Inst_2_0 = "$"#reg_name;
+}
+
+class MxEncAddrMode_i8<string opnd_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b111;
+  // REG
+  bits<3> Inst_2_0 = 0b100;
+
+  // Immediate
+  string Inst_23_16 = "$"#opnd_name;
+}
+
+class MxEncAddrMode_i16<string opnd_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b111;
+  // REG
+  bits<3> Inst_2_0 = 0b100;
+
+  // Immediate
+  string Inst_31_16 = "$"#opnd_name;
+}
+
+class MxEncAddrMode_i32<string opnd_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b111;
+  // REG
+  bits<3> Inst_2_0 = 0b100;
+
+  // Immediate
+  string Inst_47_16 = "$"#opnd_name;
 }
 
 // Allows you to specify each bit of opcode
