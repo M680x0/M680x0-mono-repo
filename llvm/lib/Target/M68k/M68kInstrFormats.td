@@ -237,6 +237,66 @@ def MxEncEAq : MxEncEA<MxBead3Bits<0b010>, MxBead2Bits<0b11>, MxBead1Bit<1>>;
 def MxEncEAk : MxEncEA<MxBead3Bits<0b011>, MxBead2Bits<0b11>, MxBead1Bit<1>>;
 def MxEncEAi : MxEncEA<MxBead3Bits<0b100>, MxBead2Bits<0b11>, MxBead1Bit<1>>;
 
+class MxEncAddrMode_p<string opnd_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b101;
+  // REG
+  string Inst_2_0 = "$"#opnd_name#".base";
+
+  // Displacement
+  string Inst_31_16 = "$"#opnd_name#".disp";
+}
+
+class MxEncAddrMode_q<string disp_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b111;
+  // REG
+  bits<3> Inst_2_0 = 0b010;
+
+  // Displacement
+  string Inst_31_16 = "$"#disp_name;
+}
+
+class MxEncAddrMode_k<string opnd_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b111;
+  // REG
+  bits<3> Inst_2_0 = 0b011;
+
+  // Brief extension word
+  // D/A + REGISTER
+  string Inst_31_28 = "$"#opnd_name#".index";
+  // W/L
+  bits<1> Inst_27_27 = 1;
+  // SCALE
+  bits<2> Inst_26_25 = 0b00;
+
+  bits<1> Inst_24_24 = 0;
+
+  // Displacement
+  string Inst_23_16 = "$"#opnd_name#".disp";
+}
+
+class MxEncAddrMode_f<string opnd_name> {
+  // MODE
+  bits<3> Inst_5_3 = 0b110;
+  // REG
+  string Inst_2_0 = "$"#opnd_name#".base";
+
+  // Brief extension word
+  // D/A + REGISTER
+  string Inst_31_28 = "$"#opnd_name#".index";
+  // W/L
+  bits<1> Inst_27_27 = 1;
+  // SCALE
+  bits<2> Inst_26_25 = 0b00;
+
+  bits<1> Inst_24_24 = 0;
+
+  // Displacement
+  string Inst_23_16 = "$"#opnd_name#".disp";
+}
+
 // Allows you to specify each bit of opcode
 class MxEncOpMode<MxBead b0, MxBead b1 = MxBeadIgnore, MxBead b2 = MxBeadIgnore> {
   MxBead B0 = b0;
@@ -357,6 +417,9 @@ class MxInst<dag outs, dag ins,
 
   // Byte stream
   field bits<192> Beads = beads.Value;
+
+  // Instruction encoding.
+  bits<128> Inst;
 
   // Number of bytes
   let Size = 0;

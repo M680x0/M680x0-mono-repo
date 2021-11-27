@@ -28,6 +28,27 @@
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
+// OPMODE Encoding
+//===----------------------------------------------------------------------===//
+class MxOpModeEncoding<bits<3> encoding> {
+  bits<3> Value = encoding;
+}
+
+// op EA, Dn
+def MxOpMode8_d_EA  : MxOpModeEncoding<0b000>;
+def MxOpMode16_d_EA : MxOpModeEncoding<0b001>;
+def MxOpMode32_d_EA : MxOpModeEncoding<0b010>;
+
+// op Dn, EA
+def MxOpMode8_EA_d  : MxOpModeEncoding<0b100>;
+def MxOpMode16_EA_d : MxOpModeEncoding<0b101>;
+def MxOpMode32_EA_d : MxOpModeEncoding<0b110>;
+
+// op EA, An
+def MxOpMode16_a_EA : MxOpModeEncoding<0b011>;
+def MxOpMode32_a_EA : MxOpModeEncoding<0b111>;
+
+//===----------------------------------------------------------------------===//
 // Encoding
 //===----------------------------------------------------------------------===//
 
@@ -144,6 +165,23 @@ class MxBiArOp_RFRM<string MN, SDNode NODE, MxType TYPE, MxOperand OPD, ComplexP
                              !cast<MxEncOpMode>("MxOpMode"#TYPE.Size#TYPE.RLet#"EA"),
                              MxBeadDReg<0>, EA, EXT>>;
 
+let mayLoad = 1 in
+class MxBiArOp_R_RM<string MN, SDNode NODE, MxType TYPE, MxOperand OPD, ComplexPattern PAT,
+                    bits<4> CMD>
+    : MxInst<(outs TYPE.ROp:$dst), (ins TYPE.ROp:$src, OPD:$opd),
+             MN#"."#TYPE.Prefix#"\t$opd, $dst",
+             [(set TYPE.VT:$dst, CCR, (NODE TYPE.VT:$src, (TYPE.Load PAT:$opd)))]> {
+  bits<3> dst;
+
+  // CMD
+  let Inst{15-12} = CMD;
+  // REGISTER
+  let Inst{11-9} = dst;
+  // OPMODE
+  let Inst{8-6}
+    = !cast<MxOpModeEncoding>("MxOpMode"#TYPE.Size#"_"#TYPE.RLet#"_EA").Value;
+}
+
 } // Constraints
 
 let mayLoad = 1, mayStore = 1 in {
@@ -177,33 +215,31 @@ multiclass MxBiArOp_DF<string MN, SDNode NODE, bit isComm,
                        bits<4> CMD, bits<4> CMDI> {
 
   // op $mem, $reg
-  def NAME#"8dk"  : MxBiArOp_RFRM<MN, NODE, MxType8d,  MxType8.KOp,  MxType8.KPat,
-                                  CMD, MxEncEAk, MxExtBrief_2>;
-  def NAME#"16dk" : MxBiArOp_RFRM<MN, NODE, MxType16d, MxType16.KOp, MxType16.KPat,
-                                  CMD, MxEncEAk, MxExtBrief_2>;
-  def NAME#"32dk" : MxBiArOp_RFRM<MN, NODE, MxType32d, MxType32.KOp, MxType32.KPat,
-                                  CMD, MxEncEAk, MxExtBrief_2>;
+  foreach SZ = [8, 16, 32] in {
+    def NAME#SZ#"dq"  : MxBiArOp_R_RM<MN, NODE,
+                                      !cast<MxType>("MxType"#SZ#"d"),
+                                      !cast<MxType>("MxType"#SZ).QOp,
+                                      !cast<MxType>("MxType"#SZ).QPat,
+                                      CMD>, MxEncAddrMode_q<"opd">;
 
-  def NAME#"8dq"  : MxBiArOp_RFRM<MN, NODE, MxType8d,  MxType8.QOp,  MxType8.QPat,
-                                  CMD, MxEncEAq, MxExtI16_2>;
-  def NAME#"16dq" : MxBiArOp_RFRM<MN, NODE, MxType16d, MxType16.QOp, MxType16.QPat,
-                                  CMD, MxEncEAq, MxExtI16_2>;
-  def NAME#"32dq" : MxBiArOp_RFRM<MN, NODE, MxType32d, MxType32.QOp, MxType32.QPat,
-                                  CMD, MxEncEAq, MxExtI16_2>;
+    def NAME#SZ#"dk"  : MxBiArOp_R_RM<MN, NODE,
+                                      !cast<MxType>("MxType"#SZ#"d"),
+                                      !cast<MxType>("MxType"#SZ).KOp,
+                                      !cast<MxType>("MxType"#SZ).KPat,
+                                      CMD>, MxEncAddrMode_k<"opd">;
 
-  def NAME#"8dp"  : MxBiArOp_RFRM<MN, NODE, MxType8d,  MxType8.POp,  MxType8.PPat,
-                                  CMD, MxEncEAp_2, MxExtI16_2>;
-  def NAME#"16dp" : MxBiArOp_RFRM<MN, NODE, MxType16d, MxType16.POp, MxType16.PPat,
-                                  CMD, MxEncEAp_2, MxExtI16_2>;
-  def NAME#"32dp" : MxBiArOp_RFRM<MN, NODE, MxType32d, MxType32.POp, MxType32.PPat,
-                                  CMD, MxEncEAp_2, MxExtI16_2>;
+    def NAME#SZ#"dp"  : MxBiArOp_R_RM<MN, NODE,
+                                      !cast<MxType>("MxType"#SZ#"d"),
+                                      !cast<MxType>("MxType"#SZ).POp,
+                                      !cast<MxType>("MxType"#SZ).PPat,
+                                      CMD>, MxEncAddrMode_p<"opd">;
 
-  def NAME#"8df"  : MxBiArOp_RFRM<MN, NODE, MxType8d,  MxType8.FOp,  MxType8.FPat,
-                                  CMD, MxEncEAf_2, MxExtBrief_2>;
-  def NAME#"16df" : MxBiArOp_RFRM<MN, NODE, MxType16d, MxType16.FOp, MxType16.FPat,
-                                  CMD, MxEncEAf_2, MxExtBrief_2>;
-  def NAME#"32df" : MxBiArOp_RFRM<MN, NODE, MxType32d, MxType32.FOp, MxType32.FPat,
-                                  CMD, MxEncEAf_2, MxExtBrief_2>;
+    def NAME#SZ#"df"  : MxBiArOp_R_RM<MN, NODE,
+                                      !cast<MxType>("MxType"#SZ#"d"),
+                                      !cast<MxType>("MxType"#SZ).FOp,
+                                      !cast<MxType>("MxType"#SZ).FPat,
+                                      CMD>, MxEncAddrMode_f<"opd">;
+  } // foreach SZ
 
   def NAME#"8dj"  : MxBiArOp_RFRM<MN, NODE, MxType8d,  MxType8.JOp,  MxType8.JPat,
                                   CMD, MxEncEAj_2, MxExtEmpty>;

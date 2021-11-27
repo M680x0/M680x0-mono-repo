@@ -39,6 +39,15 @@ class M68kMCCodeEmitter : public MCCodeEmitter {
   const MCInstrInfo &MCII;
   MCContext &Ctx;
 
+  void getMachineOpValue(const MCInst &MI, const MCOperand &Op,
+                         APInt &Encoding,
+                         SmallVectorImpl<MCFixup> &Fixups,
+                         const MCSubtargetInfo &STI) const;
+
+  void getBinaryCodeForInstr(const MCInst &MI, SmallVectorImpl<MCFixup> &Fixups,
+                             APInt &Inst, APInt &Scratch,
+                             const MCSubtargetInfo &STI) const;
+
 public:
   M68kMCCodeEmitter(const MCInstrInfo &mcii, MCContext &ctx)
       : MCII(mcii), Ctx(ctx) {}
@@ -71,6 +80,15 @@ public:
 };
 
 } // end anonymous namespace
+
+void M68kMCCodeEmitter::getMachineOpValue(const MCInst &MI, const MCOperand &Op,
+                                          APInt &Encoding,
+                                          SmallVectorImpl<MCFixup> &Fixups,
+                                          const MCSubtargetInfo &STI) const {
+  // TODO
+}
+
+#include "M68kGenMCCodeEmitter.inc"
 
 unsigned M68kMCCodeEmitter::encodeBits(unsigned ThisByte, uint8_t Bead,
                                        const MCInst &MI,
