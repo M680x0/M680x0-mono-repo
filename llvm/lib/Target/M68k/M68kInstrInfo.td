@@ -402,6 +402,7 @@ def Mxi32imm : MxOp<i32, MxSize32, "i">;
 class MxBrTargetOperand<int N> : Operand<OtherVT> {
   let OperandType = "OPERAND_PCREL";
   let PrintMethod = "printPCRelImm";
+  let EncoderMethod = "encodePCRelImm<"#N#">";
   let ParserMatchClass = !cast<AsmOperandClass>("MxAddr"#N);
 }
 // Branch targets have OtherVT type and print as pc-relative values.

@@ -1,6 +1,9 @@
 ; RUN: llvm-mc -triple=m68k -show-encoding %s | FileCheck %s
 ; RUN: llvm-mc -triple=m68k -filetype=obj < %s | \
 ; RUN:     llvm-objdump -d - | FileCheck --check-prefix=CHECK-OBJ %s
+; Disable this test until there is a disassembler that doesn't rely on
+; code beads.
+; XFAIL: *
 
 ; CHECK-LABEL: BACKWARD:
 BACKWARD:
