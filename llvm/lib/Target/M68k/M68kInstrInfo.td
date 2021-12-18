@@ -640,6 +640,58 @@ class MxType<ValueType vt, string prefix, string postfix,
   PatFrag Load = load;
 }
 
+class MxOpBundle<int size, MxOperand op, ComplexPattern pat> {
+  int Size = size;
+  MxOperand Op = op;
+  ComplexPattern Pat = pat;
+}
+
+class MxImmOpBundle<int size, MxOperand op, PatFrag pat>
+  : MxOpBundle<size, op, ?> {
+  PatFrag ImmPat = pat;
+}
+
+foreach size = [8, 16, 32] in {
+  def MxOp#size#AddrMode_d
+    : MxOpBundle<size, !cast<MxOperand>("MxDRD"#size), ?>;
+
+  def MxOp#size#AddrMode_j
+    : MxOpBundle<size, !cast<MxOperand>("MxARI"#size), MxCP_ARI>;
+
+  def MxOp#size#AddrMode_o
+    : MxOpBundle<size, !cast<MxOperand>("MxARIPI"#size), MxCP_ARIPI>;
+
+  def MxOp#size#AddrMode_e
+    : MxOpBundle<size, !cast<MxOperand>("MxARIPD"#size), MxCP_ARIPD>;
+
+  def MxOp#size#AddrMode_p
+    : MxOpBundle<size, !cast<MxOperand>("MxARID"#size), MxCP_ARID>;
+
+  def MxOp#size#AddrMode_f
+    : MxOpBundle<size, !cast<MxOperand>("MxARII"#size), MxCP_ARII>;
+
+  def MxOp#size#AddrMode_b
+    : MxOpBundle<size, !cast<MxOperand>("MxAL"#size), MxCP_AL>;
+
+  def MxOp#size#AddrMode_q
+    : MxOpBundle<size, !cast<MxOperand>("MxPCD"#size), MxCP_PCD>;
+
+  def MxOp#size#AddrMode_k
+    : MxOpBundle<size, !cast<MxOperand>("MxPCI"#size), MxCP_PCI>;
+
+  def MxOp#size#AddrMode_i
+    : MxImmOpBundle<size, !cast<MxOperand>("Mxi"#size#"imm"),
+                    !cast<PatFrag>("MximmSExt"#size)>;
+} // foreach size = [8, 16, 32]
+
+foreach size = [16, 32] in {
+  def MxOp#size#AddrMode_a
+    : MxOpBundle<size, !cast<MxOperand>("MxARD"#size), ?>;
+
+  def MxOp#size#AddrMode_r
+    : MxOpBundle<size, !cast<MxOperand>("MxXRD"#size), ?>;
+} // foreach size = [16, 32]
+
 class MxType8Class<string rLet, MxOperand reg>
     : MxType<i8, "b", "", rLet, reg,
              MxARI8,   MxCP_ARI,
