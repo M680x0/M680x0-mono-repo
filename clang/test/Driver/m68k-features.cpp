@@ -1,4 +1,11 @@
 // REQUIRES: m68k-registered-target
+
+// ==== PC-Relative Relocation ====
+// RUN: %clang -target m68k -mpcrel -### %s 2> %t
+// RUN: FileCheck --check-prefix=CHECK-PCREL < %t %s
+// CHECK-PCREL: "-target-feature" "+use-pcrel"
+
+// ==== Register Reservation ====
 // RUN: %clang -target m68k -ffixed-a0 -### %s 2> %t
 // RUN: FileCheck --check-prefix=CHECK-FIXED-A0 < %t %s
 // CHECK-FIXED-A0: "-target-feature" "+reserve-a0"
