@@ -163,6 +163,8 @@ M68kTargetLowering::M68kTargetLowering(const M68kTargetMachine &TM,
   setOperationAction(ISD::ATOMIC_CMP_SWAP, {MVT::i8, MVT::i16, MVT::i32},
                      Subtarget.atLeastM68020() ? Legal : LibCall);
 
+  setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, LibCall);
+
   // M68k does not have native read-modify-write support, so expand all of them
   // to `__sync_fetch_*` for target < M68020, otherwise expand to CmpxChg.
   // See `shouldExpandAtomicRMWInIR` below.
