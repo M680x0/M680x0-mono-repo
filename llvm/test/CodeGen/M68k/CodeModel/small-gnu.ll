@@ -116,7 +116,6 @@ define void @test3() nounwind {
 ; CHECK:       ; %bb.0: ; %entry
 ; CHECK-NEXT:    suba.l #4, %sp
 ; CHECK-NEXT:    jsr afoo@PLT
-; CHECK-NEXT:    move.l %d0, %a0
 ; CHECK-NEXT:    move.l %a0, pfoo
 ; CHECK-NEXT:    jsr (%a0)
 ; CHECK-NEXT:    adda.l #4, %sp
@@ -126,7 +125,6 @@ define void @test3() nounwind {
 ; CHECK-PCREL:       ; %bb.0: ; %entry
 ; CHECK-PCREL-NEXT:    suba.l #4, %sp
 ; CHECK-PCREL-NEXT:    jsr afoo@PLT
-; CHECK-PCREL-NEXT:    move.l %d0, %a0
 ; CHECK-PCREL-NEXT:    move.l %a0, (pfoo,%pc)
 ; CHECK-PCREL-NEXT:    jsr (%a0)
 ; CHECK-PCREL-NEXT:    adda.l #4, %sp
@@ -136,7 +134,6 @@ define void @test3() nounwind {
 ; CHECK-PIC:       ; %bb.0: ; %entry
 ; CHECK-PIC-NEXT:    suba.l #4, %sp
 ; CHECK-PIC-NEXT:    jsr (afoo@PLT,%pc)
-; CHECK-PIC-NEXT:    move.l %d0, %a0
 ; CHECK-PIC-NEXT:    move.l (pfoo@GOTPCREL,%pc), %a1
 ; CHECK-PIC-NEXT:    move.l %a0, (%a1)
 ; CHECK-PIC-NEXT:    jsr (%a0)
