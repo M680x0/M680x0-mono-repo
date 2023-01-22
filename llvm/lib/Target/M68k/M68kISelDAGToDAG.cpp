@@ -227,6 +227,9 @@ private:
   bool SelectPCD(SDNode *Parent, SDValue N, SDValue &Imm);
   bool SelectPCI(SDNode *Parent, SDValue N, SDValue &Imm, SDValue &Index);
 
+  bool SelectInlineAsmMemoryOperand(const SDValue &Op, unsigned ConstraintID,
+                                    std::vector< SDValue > &OutOps) override;
+
   // If Address Mode represents Frame Index store FI in Disp and
   // Displacement bit size in Base. These values are read symmetrically by
   // M68kRegisterInfo::eliminateFrameIndex method
@@ -931,3 +934,61 @@ bool M68kDAGToDAGISel::SelectARI(SDNode *Parent, SDValue N, SDValue &Base) {
 
   return false;
 }
+
+bool
+M68kDAGToDAGISel::SelectInlineAsmMemoryOperand(const SDValue &Op,
+                                               unsigned ConstraintID,
+                                               std::vector< SDValue > &OutOps) {
+  switch (ConstraintID) {
+  // Generic memory operand.
+  case InlineAsm::Constraint_m: {
+    // Try every supported (memory) addressing modes.
+    SDValue Operands[3];
+
+    if (SelectARII(nullptr, Op, Operands[0], Operands[1], Operands[2])) {
+      OutOps.insert(OutOps.end(), &Operands[0], Operands + 3);
+      return false;
+    }
+
+    if (SelectPCI(nullptr, Op, Operands[0], Operands[1]) ||
+        SelectARID(nullptr, Op, Operands[0], Operands[1])) {
+      OutOps.insert(OutOps.end(), {Operands[0], Operands[1]});
+      return false;
+    }
+
+    if (SelectPCD(nullptr, Op, Operands[0]) ||
+        SelectARI(nullptr, Op, Operands[0]) ||
+        SelectAL(nullptr, Op, Operands[0])) {
+      OutOps.push_back(Operands[0]);
+      return false;
+    }
+
+    return true;
+  }
+  // 'Q': Address register indirect addressing.
+  case InlineAsm::Constraint_Q: {
+    SDValue Base;
+    // 'j' addressing mode.
+    // TODO: Add support for 'o' and 'e' after their
+    // select functions are implemented.
+    if (SelectARI(nullptr, Op, Base)) {
+      OutOps.push_back(Base);
+      return false;
+    }
+    return true;
+  }
+  // 'U': Address register indirect w/ constant offset addressing.
+  case InlineAsm::Constraint_Um: {
+    SDValue Base, Offset;
+    // 'p' addressing mode.
+    if (SelectARID(nullptr, Op, Offset, Base)) {
+      OutOps.insert(OutOps.end(), {Offset, Base});
+      return false;
+    }
+    return true;
+  }
+  default:
+    return true;
+  }
+}
+

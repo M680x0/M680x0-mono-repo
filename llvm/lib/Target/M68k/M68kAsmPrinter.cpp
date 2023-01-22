@@ -76,6 +76,27 @@ bool M68kAsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
   return AsmPrinter::PrintAsmOperand(MI, OpNo, ExtraCode, OS);
 }
 
+bool M68kAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
+                                           unsigned OpNo,
+                                           const char *ExtraCode,
+                                           raw_ostream &OS) {
+  const MachineOperand &MO = MI->getOperand(OpNo);
+  switch (MO.getType()) {
+  case MachineOperand::MO_Register:
+    OS << "(%" << M68kInstPrinter::getRegisterName(MO.getReg()) << ")";
+    return false;
+  case MachineOperand::MO_GlobalAddress:
+    PrintSymbolOperand(MO, OS);
+    return false;
+  case MachineOperand::MO_BlockAddress:
+    GetBlockAddressSymbol(MO.getBlockAddress())->print(OS, MAI);
+    return false;
+  default:
+    break;
+  }
+  return AsmPrinter::PrintAsmMemoryOperand(MI, OpNo, ExtraCode, OS);
+}
+
 void M68kAsmPrinter::emitInstruction(const MachineInstr *MI) {
   M68k_MC::verifyInstructionPredicates(MI->getOpcode(),
                                        getSubtargetInfo().getFeatureBits());
