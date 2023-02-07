@@ -16,6 +16,7 @@
 
 #include "M68kMCInstLower.h"
 #include "M68kTargetMachine.h"
+#include "MCTargetDesc/M68kMemOperandPrinter.h"
 
 #include "llvm/CodeGen/AsmPrinter.h"
 #include "llvm/MC/MCStreamer.h"
@@ -34,18 +35,17 @@ class raw_ostream;
 class M68kSubtarget;
 class M68kMachineFunctionInfo;
 
-class LLVM_LIBRARY_VISIBILITY M68kAsmPrinter : public AsmPrinter {
+class LLVM_LIBRARY_VISIBILITY M68kAsmPrinter :
+  public AsmPrinter,
+  public M68kMemOperandPrinter<M68kAsmPrinter, MachineInstr> {
+
+  friend class M68kMemOperandPrinter;
 
   void EmitInstrWithMacroNoAT(const MachineInstr *MI);
 
   void printOperand(const MachineInstr *MI, int OpNum, raw_ostream &OS);
 
   void printDisp(const MachineInstr *MI, unsigned OpNum, raw_ostream &OS);
-  void printARIMem(const MachineInstr *MI, unsigned OpNum, raw_ostream &OS);
-  void printARIPDMem(const MachineInstr *MI, unsigned OpNum, raw_ostream &OS);
-  void printARIPIMem(const MachineInstr *MI, unsigned OpNum, raw_ostream &OS);
-  void printARIDMem(const MachineInstr *MI, unsigned OpNum, raw_ostream &OS);
-  void printARIIMem(const MachineInstr *MI, unsigned OpNum, raw_ostream &OS);
 
 public:
   const M68kSubtarget *Subtarget;

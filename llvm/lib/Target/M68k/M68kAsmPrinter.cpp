@@ -77,7 +77,7 @@ bool M68kAsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
 }
 
 void M68kAsmPrinter::printDisp(const MachineInstr *MI, unsigned opNum,
-                                raw_ostream &O) {
+                               raw_ostream &O) {
   // Print immediate displacement without the '#' predix
   const MachineOperand &Op = MI->getOperand(opNum);
   if (Op.isImm()) {
@@ -86,47 +86,6 @@ void M68kAsmPrinter::printDisp(const MachineInstr *MI, unsigned opNum,
   }
   assert(Op.getType() != MachineOperand::MO_Register);
   printOperand(MI, opNum, O);
-}
-
-void M68kAsmPrinter::printARIMem(const MachineInstr *MI, unsigned opNum,
-                                  raw_ostream &O) {
-  O << '(';
-  printOperand(MI, opNum, O);
-  O << ')';
-}
-
-void M68kAsmPrinter::printARIPIMem(const MachineInstr *MI, unsigned opNum,
-                                    raw_ostream &O) {
-  O << "(";
-  printOperand(MI, opNum, O);
-  O << ")+";
-}
-
-void M68kAsmPrinter::printARIPDMem(const MachineInstr *MI, unsigned opNum,
-                                    raw_ostream &O) {
-  O << "-(";
-  printOperand(MI, opNum, O);
-  O << ")";
-}
-
-void M68kAsmPrinter::printARIDMem(const MachineInstr *MI, unsigned opNum,
-                                   raw_ostream &O) {
-  O << '(';
-  printDisp(MI, opNum + M68k::MemDisp, O);
-  O << ',';
-  printOperand(MI, opNum + M68k::MemBase, O);
-  O << ')';
-}
-
-void M68kAsmPrinter::printARIIMem(const MachineInstr *MI, unsigned opNum,
-                                   raw_ostream &O) {
-  O << '(';
-  printDisp(MI, opNum + M68k::MemDisp, O);
-  O << ',';
-  printOperand(MI, opNum + M68k::MemBase, O);
-  O << ',';
-  printOperand(MI, opNum + M68k::MemIndex, O);
-  O << ')';
 }
 
 bool M68kAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
