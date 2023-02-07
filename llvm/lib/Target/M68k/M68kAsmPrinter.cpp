@@ -88,6 +88,15 @@ void M68kAsmPrinter::printDisp(const MachineInstr *MI, unsigned opNum,
   printOperand(MI, opNum, O);
 }
 
+void M68kAsmPrinter::printAbsMem(const MachineInstr *MI, unsigned OpNum,
+                                 raw_ostream &O) {
+  const MachineOperand &MO = MI->getOperand(OpNum);
+  if (MO.isImm())
+    O << format("$%0" PRIx64, (uint64_t)MO.getImm());
+  else
+    PrintAsmMemoryOperand(MI, OpNum, nullptr, O);
+}
+
 bool M68kAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
                                            unsigned OpNo,
                                            const char *ExtraCode,
@@ -116,12 +125,18 @@ bool M68kAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
     case MemAddrModeFlag::F:
       printARIIMem(MI, OpNo, OS);
       break;
+    case MemAddrModeFlag::k:
+      printPCIMem(MI, 0, OpNo, OS);
+      break;
+    case MemAddrModeFlag::q:
+      printPCDMem(MI, 0, OpNo, OS);
+      break;
+    case MemAddrModeFlag::b:
+      printAbsMem(MI, OpNo, OS);
+      break;
     default:
       llvm_unreachable("Unrecognized memory addressing mode");
     }
-    return false;
-  case MachineOperand::MO_Register:
-    OS << "(%" << M68kInstPrinter::getRegisterName(MO.getReg()) << ")";
     return false;
   case MachineOperand::MO_GlobalAddress:
     PrintSymbolOperand(MO, OS);

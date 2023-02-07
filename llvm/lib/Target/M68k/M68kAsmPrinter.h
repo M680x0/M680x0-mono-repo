@@ -46,6 +46,7 @@ class LLVM_LIBRARY_VISIBILITY M68kAsmPrinter :
   void printOperand(const MachineInstr *MI, int OpNum, raw_ostream &OS);
 
   void printDisp(const MachineInstr *MI, unsigned OpNum, raw_ostream &OS);
+  void printAbsMem(const MachineInstr *MI, unsigned OpNum, raw_ostream &OS);
 
 public:
   const M68kSubtarget *Subtarget;
