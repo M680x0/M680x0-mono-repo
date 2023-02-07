@@ -939,27 +939,36 @@ bool
 M68kDAGToDAGISel::SelectInlineAsmMemoryOperand(const SDValue &Op,
                                                unsigned ConstraintID,
                                                std::vector< SDValue > &OutOps) {
+  using AMF = M68k::MemAddrModeFlag;
+  auto addFlag = [this](SDValue &Opnd, AMF Flag) -> bool {
+    Opnd = CurDAG->getTargetConstant(unsigned(Flag), SDLoc(), MVT::i32);
+    return true;
+  };
+
   switch (ConstraintID) {
   // Generic memory operand.
   case InlineAsm::Constraint_m: {
     // Try every supported (memory) addressing modes.
-    SDValue Operands[3];
+    SDValue Operands[4];
 
-    if (SelectARII(nullptr, Op, Operands[0], Operands[1], Operands[2])) {
+    if (SelectARII(nullptr, Op, Operands[1], Operands[2], Operands[3]) &&
+        addFlag(Operands[0], AMF::f)) {
+      OutOps.insert(OutOps.end(), &Operands[0], Operands + 4);
+      return false;
+    }
+
+    if ((SelectPCI(nullptr, Op, Operands[1], Operands[2]) &&
+         addFlag(Operands[0], AMF::k)) ||
+        (SelectARID(nullptr, Op, Operands[1], Operands[2]) &&
+         addFlag(Operands[0], AMF::p))) {
       OutOps.insert(OutOps.end(), &Operands[0], Operands + 3);
       return false;
     }
 
-    if (SelectPCI(nullptr, Op, Operands[0], Operands[1]) ||
-        SelectARID(nullptr, Op, Operands[0], Operands[1])) {
+    if ((SelectPCD(nullptr, Op, Operands[1]) && addFlag(Operands[0], AMF::q)) ||
+        (SelectARI(nullptr, Op, Operands[1]) && addFlag(Operands[0], AMF::j)) ||
+        (SelectAL(nullptr, Op, Operands[1]) && addFlag(Operands[0], AMF::b))) {
       OutOps.insert(OutOps.end(), {Operands[0], Operands[1]});
-      return false;
-    }
-
-    if (SelectPCD(nullptr, Op, Operands[0]) ||
-        SelectARI(nullptr, Op, Operands[0]) ||
-        SelectAL(nullptr, Op, Operands[0])) {
-      OutOps.push_back(Operands[0]);
       return false;
     }
 
@@ -967,22 +976,22 @@ M68kDAGToDAGISel::SelectInlineAsmMemoryOperand(const SDValue &Op,
   }
   // 'Q': Address register indirect addressing.
   case InlineAsm::Constraint_Q: {
-    SDValue Base;
+    SDValue AMFlag, Base;
     // 'j' addressing mode.
     // TODO: Add support for 'o' and 'e' after their
     // select functions are implemented.
-    if (SelectARI(nullptr, Op, Base)) {
-      OutOps.push_back(Base);
+    if (SelectARI(nullptr, Op, Base) && addFlag(AMFlag, AMF::j)) {
+      OutOps.insert(OutOps.end(), {AMFlag, Base});
       return false;
     }
     return true;
   }
   // 'U': Address register indirect w/ constant offset addressing.
   case InlineAsm::Constraint_Um: {
-    SDValue Base, Offset;
+    SDValue AMFlag, Base, Offset;
     // 'p' addressing mode.
-    if (SelectARID(nullptr, Op, Offset, Base)) {
-      OutOps.insert(OutOps.end(), {Offset, Base});
+    if (SelectARID(nullptr, Op, Offset, Base) && addFlag(AMFlag, AMF::p)) {
+      OutOps.insert(OutOps.end(), {AMFlag, Offset, Base});
       return false;
     }
     return true;

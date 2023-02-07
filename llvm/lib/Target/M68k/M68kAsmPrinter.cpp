@@ -76,12 +76,91 @@ bool M68kAsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
   return AsmPrinter::PrintAsmOperand(MI, OpNo, ExtraCode, OS);
 }
 
+void M68kAsmPrinter::printDisp(const MachineInstr *MI, unsigned opNum,
+                                raw_ostream &O) {
+  // Print immediate displacement without the '#' predix
+  const MachineOperand &Op = MI->getOperand(opNum);
+  if (Op.isImm()) {
+    O << Op.getImm();
+    return;
+  }
+  assert(Op.getType() != MachineOperand::MO_Register);
+  printOperand(MI, opNum, O);
+}
+
+void M68kAsmPrinter::printARIMem(const MachineInstr *MI, unsigned opNum,
+                                  raw_ostream &O) {
+  O << '(';
+  printOperand(MI, opNum, O);
+  O << ')';
+}
+
+void M68kAsmPrinter::printARIPIMem(const MachineInstr *MI, unsigned opNum,
+                                    raw_ostream &O) {
+  O << "(";
+  printOperand(MI, opNum, O);
+  O << ")+";
+}
+
+void M68kAsmPrinter::printARIPDMem(const MachineInstr *MI, unsigned opNum,
+                                    raw_ostream &O) {
+  O << "-(";
+  printOperand(MI, opNum, O);
+  O << ")";
+}
+
+void M68kAsmPrinter::printARIDMem(const MachineInstr *MI, unsigned opNum,
+                                   raw_ostream &O) {
+  O << '(';
+  printDisp(MI, opNum + M68k::MemDisp, O);
+  O << ',';
+  printOperand(MI, opNum + M68k::MemBase, O);
+  O << ')';
+}
+
+void M68kAsmPrinter::printARIIMem(const MachineInstr *MI, unsigned opNum,
+                                   raw_ostream &O) {
+  O << '(';
+  printDisp(MI, opNum + M68k::MemDisp, O);
+  O << ',';
+  printOperand(MI, opNum + M68k::MemBase, O);
+  O << ',';
+  printOperand(MI, opNum + M68k::MemIndex, O);
+  O << ')';
+}
+
 bool M68kAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
                                            unsigned OpNo,
                                            const char *ExtraCode,
                                            raw_ostream &OS) {
   const MachineOperand &MO = MI->getOperand(OpNo);
   switch (MO.getType()) {
+  case MachineOperand::MO_Immediate:
+    using namespace M68k;
+    // Skip the flag operand.
+    ++OpNo;
+    // Decode MemAddrModeFlag.
+    switch (static_cast<MemAddrModeFlag>(MO.getImm())) {
+    case MemAddrModeFlag::j:
+      printARIMem(MI, OpNo, OS);
+      break;
+    case MemAddrModeFlag::o:
+      printARIPIMem(MI, OpNo, OS);
+      break;
+    case MemAddrModeFlag::e:
+      printARIPDMem(MI, OpNo, OS);
+      break;
+    case MemAddrModeFlag::p:
+      printARIDMem(MI, OpNo, OS);
+      break;
+    case MemAddrModeFlag::f:
+    case MemAddrModeFlag::F:
+      printARIIMem(MI, OpNo, OS);
+      break;
+    default:
+      llvm_unreachable("Unrecognized memory addressing mode");
+    }
+    return false;
   case MachineOperand::MO_Register:
     OS << "(%" << M68kInstPrinter::getRegisterName(MO.getReg()) << ")";
     return false;
