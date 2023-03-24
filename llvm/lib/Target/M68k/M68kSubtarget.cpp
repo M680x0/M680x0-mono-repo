@@ -148,6 +148,22 @@ unsigned char M68kSubtarget::classifyBlockAddressReference() const {
   return M68kII::MO_PC_RELATIVE_ADDRESS;
 }
 
+/// Return relocation kind for potential pc-relative references.
+unsigned char M68kSubtarget::usePCRelReference() const {
+  if (isPCRelative())
+    return M68kII::MO_PC_RELATIVE_ADDRESS;
+
+  // BFD LD is unable to resolve pcrel relocations against DSO symbols.
+  // Thus, we use absolute reloc here just to be safe and (maybe) relax it
+  // later if the symbol is truely DSO local.
+  if (TargetTriple.isGNUEnvironment()) {
+    return isPositionIndependent() ?
+      M68kII::MO_GOTPCREL : M68kII::MO_ABSOLUTE_ADDRESS;
+  } else {
+    return M68kII::MO_PC_RELATIVE_ADDRESS;
+  }
+}
+
 unsigned char
 M68kSubtarget::classifyLocalReference(const GlobalValue *GV) const {
   switch (TM.getCodeModel()) {
@@ -155,20 +171,20 @@ M68kSubtarget::classifyLocalReference(const GlobalValue *GV) const {
     llvm_unreachable("Unsupported code model");
   case CodeModel::Small:
   case CodeModel::Kernel: {
-    return M68kII::MO_PC_RELATIVE_ADDRESS;
+    return usePCRelReference();
   }
   case CodeModel::Medium: {
     if (isPositionIndependent()) {
       // On M68020 and better we can fit big any data offset into dips field.
       if (atLeastM68020()) {
-        return M68kII::MO_PC_RELATIVE_ADDRESS;
+        return usePCRelReference();
       }
       // Otherwise we could check the data size and make sure it will fit into
       // 16 bit offset. For now we will be conservative and go with @GOTOFF
       return M68kII::MO_GOTOFF;
     } else {
       if (atLeastM68020()) {
-        return M68kII::MO_PC_RELATIVE_ADDRESS;
+        return usePCRelReference();
       }
       return M68kII::MO_ABSOLUTE_ADDRESS;
     }
@@ -203,14 +219,14 @@ unsigned char M68kSubtarget::classifyGlobalReference(const GlobalValue *GV,
   case CodeModel::Kernel: {
     if (isPositionIndependent())
       return M68kII::MO_GOTPCREL;
-    return M68kII::MO_PC_RELATIVE_ADDRESS;
+    return usePCRelReference();
   }
   case CodeModel::Medium: {
     if (isPositionIndependent())
       return M68kII::MO_GOTPCREL;
 
     if (atLeastM68020())
-      return M68kII::MO_PC_RELATIVE_ADDRESS;
+      return usePCRelReference();
 
     return M68kII::MO_ABSOLUTE_ADDRESS;
   }

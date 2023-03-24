@@ -104,6 +104,11 @@ void m68k::getM68kTargetFeatures(const Driver &D, const llvm::Triple &Triple,
     Features.push_back("+reserve-d6");
   if (Args.hasArg(options::OPT_ffixed_d7))
     Features.push_back("+reserve-d7");
+
+  // Handle -mpcrel / -mno-pcrel
+  if (Args.hasFlag(options::OPT_mpcrel, options::OPT_mno_pcrel,
+                   false))
+    Features.push_back("+use-pcrel");
 }
 
 m68k::FloatABI m68k::getM68kFloatABI(const Driver &D, const ArgList &Args) {

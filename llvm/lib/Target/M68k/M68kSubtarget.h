@@ -44,6 +44,8 @@ class M68kTargetMachine;
 class M68kSubtarget : public M68kGenSubtargetInfo {
   virtual void anchor();
 
+  unsigned char usePCRelReference() const;
+
 protected:
   // These define which ISA is supported. Since each Motorola M68k ISA is
   // built on top of the previous one whenever an ISA is selected the previous
@@ -54,6 +56,8 @@ protected:
   std::bitset<M68k::NUM_TARGET_REGS> UserReservedRegister;
 
   InstrItineraryData InstrItins;
+
+  bool UsePCRelativeRelocation = false;
 
   /// Small section is used.
   bool UseSmallSection = true;
@@ -105,6 +109,8 @@ public:
     assert(R < M68k::NUM_TARGET_REGS && "Register out of range");
     return UserReservedRegister[R];
   }
+
+  bool isPCRelative() const { return UsePCRelativeRelocation; }
 
   /// Classify a global variable reference for the current subtarget according
   /// to how we should reference it in a non-pcrel context.
