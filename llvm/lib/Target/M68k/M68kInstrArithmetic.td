@@ -573,12 +573,24 @@ let Constraints = "$src = $dst" in {
 class MxDiMuOp_DD<string MN, bits<4> CMD, bit SIGNED = false,
                   MxOperand DST, MxOperand OPD>
     : MxInst<(outs DST:$dst), (ins DST:$src, OPD:$opd), MN#"\t$opd, $dst", []> {
-  let Inst = (descend CMD,
+  let Inst = (ascend (descend CMD,
     // REGISTER
-    (operand "$dst", 3),
+    !if(!eq(OPD.Size, MxSize32), (descend 0b110), (operand "$dst", 3)),
     !if(SIGNED, 0b111, 0b011),
     /*MODE*/0b000, /*REGISTER*/(operand "$opd", 3)
-  );
+  ), !if(!eq(OPD.Size, MxSize32), (descend
+    0b0,
+    /*Dl (low)*/
+    (operand "$dst", 3),
+    /*SIZE*/
+    // Right now we only support SIZE = 0 (i.e. only Dl is used)
+    // TODO: Support Dl-Dh form
+    0b00,
+    0b0000000,
+    /*Dh (high)*/
+    // TODO: Support Dl-Dh form
+    0b000
+  ), (descend)));
 }
 
 // $reg <- $reg op $imm
@@ -590,8 +602,21 @@ class MxDiMuOp_DI<string MN, bits<4> CMD, bit SIGNED = false,
   let Inst = (ascend
     (descend CMD,
       // REGISTER
-      (operand "$dst", 3),
+      !if(!eq(OPD.Size, MxSize32), (descend 0b110), (operand "$dst", 3)),
       !if(SIGNED, 0b111, 0b011), ImmEnc.EA),
+    !if(!eq(OPD.Size, MxSize32), (descend
+        0b0,
+        /*Dl (low)*/
+        (operand "$dst", 3),
+        /*SIZE*/
+        // Right now we only support SIZE = 0 (i.e. only Dl is used)
+        // TODO: Support Dl-Dh form
+        0b00,
+        0b0000000,
+        /*Dh (high)*/
+        // TODO: Support Dl-Dh form
+        0b000
+    ), (descend)),
     ImmEnc.Supplement
   );
 }
@@ -602,10 +627,14 @@ multiclass MxDiMuOp<string MN, bits<4> CMD, bit isComm = 0> {
   let isCommutable = isComm in {
     def "S"#NAME#"d32d16" : MxDiMuOp_DD<MN#"s", CMD, /*SIGNED*/true, MxDRD32, MxDRD16>;
     def "U"#NAME#"d32d16" : MxDiMuOp_DD<MN#"u", CMD, /*SIGNED*/false, MxDRD32, MxDRD16>;
+    def "S"#NAME#"d32d32" : MxDiMuOp_DD<MN#"s", CMD, /*SIGNED*/true, MxDRD32, MxDRD32>;
+    def "U"#NAME#"d32d32" : MxDiMuOp_DD<MN#"u", CMD, /*SIGNED*/false, MxDRD32, MxDRD32>;
   }
 
   def "S"#NAME#"d32i16" : MxDiMuOp_DI<MN#"s", CMD, /*SIGNED*/true, MxDRD32, Mxi16imm>;
   def "U"#NAME#"d32i16" : MxDiMuOp_DI<MN#"u", CMD, /*SIGNED*/false, MxDRD32, Mxi16imm>;
+  def "S"#NAME#"d32i32" : MxDiMuOp_DI<MN#"s", CMD, /*SIGNED*/true, MxDRD32, Mxi32imm>;
+  def "U"#NAME#"d32i32" : MxDiMuOp_DI<MN#"u", CMD, /*SIGNED*/false, MxDRD32, Mxi32imm>;
 }
 
 defm DIV : MxDiMuOp<"div", 0x8>;
@@ -710,6 +739,16 @@ def : Pat<(mul i16:$dst, i16:$opd),
             (SMULd32d16 (MOVXd32d16 $dst), $opd),
              MxSubRegIndex16Lo)>;
 
+def : Pat<(MxUMul i16:$dst, i16:$opd),
+          (EXTRACT_SUBREG
+            (UMULd32d16 (MOVXd32d16 $dst), $opd),
+             MxSubRegIndex16Lo)>;
+
+def : Pat<(MxSMul i16:$dst, i16:$opd),
+          (EXTRACT_SUBREG
+            (SMULd32d16 (MOVXd32d16 $dst), $opd),
+             MxSubRegIndex16Lo)>;
+
 def : Pat<(mulhs i16:$dst, i16:$opd),
           (EXTRACT_SUBREG
             (ASR32di (ASR32di (SMULd32d16 (MOVXd32d16 $dst), $opd), 8), 8),
@@ -720,11 +759,24 @@ def : Pat<(mulhu i16:$dst, i16:$opd),
             (LSR32di (LSR32di (UMULd32d16 (MOVXd32d16 $dst), $opd), 8), 8),
              MxSubRegIndex16Lo)>;
 
+def : Pat<(mul i32:$dst, i32:$opd),    (SMULd32d32 $dst, $opd)>;
+def : Pat<(MxSMul i32:$dst, i32:$opd), (SMULd32d32 $dst, $opd)>;
+def : Pat<(MxUMul i32:$dst, i32:$opd), (UMULd32d32 $dst, $opd)>;
 
 // RI
 def : Pat<(mul i16:$dst, MximmSExt16:$opd),
           (EXTRACT_SUBREG
             (SMULd32i16 (MOVXd32d16 $dst), imm:$opd),
+             MxSubRegIndex16Lo)>;
+
+def : Pat<(MxSMul i16:$dst, MximmSExt16:$opd),
+          (EXTRACT_SUBREG
+            (SMULd32i16 (MOVXd32d16 $dst), imm:$opd),
+             MxSubRegIndex16Lo)>;
+
+def : Pat<(MxUMul i16:$dst, MximmSExt16:$opd),
+          (EXTRACT_SUBREG
+            (UMULd32i16 (MOVXd32d16 $dst), imm:$opd),
              MxSubRegIndex16Lo)>;
 
 def : Pat<(mulhs i16:$dst, MximmSExt16:$opd),
@@ -737,6 +789,9 @@ def : Pat<(mulhu i16:$dst, MximmSExt16:$opd),
             (LSR32di (LSR32di (UMULd32i16 (MOVXd32d16 $dst), imm:$opd), 8), 8),
              MxSubRegIndex16Lo)>;
 
+def : Pat<(mul i32:$dst, MximmSExt32:$opd), (SMULd32i32 $dst, imm:$opd)>;
+def : Pat<(MxSMul i32:$dst, MximmSExt32:$opd), (SMULd32i32 $dst, imm:$opd)>;
+def : Pat<(MxUMul i32:$dst, MximmSExt32:$opd), (UMULd32i32 $dst, imm:$opd)>;
 
 //===----------------------------------------------------------------------===//
 // NEG/NEGX

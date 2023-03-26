@@ -2050,16 +2050,11 @@ static bool isM68kLogicalCmp(SDValue Op) {
   unsigned Opc = Op.getNode()->getOpcode();
   if (Opc == M68kISD::CMP)
     return true;
-  if (Op.getResNo() == 1 &&
-      (Opc == M68kISD::ADD || Opc == M68kISD::SUB || Opc == M68kISD::ADDX ||
-       Opc == M68kISD::SUBX || Opc == M68kISD::SMUL || Opc == M68kISD::UMUL ||
-       Opc == M68kISD::OR || Opc == M68kISD::XOR || Opc == M68kISD::AND))
-    return true;
-
-  if (Op.getResNo() == 2 && Opc == M68kISD::UMUL)
-    return true;
-
-  return false;
+  return (Op.getResNo() == 1 &&
+          (Opc == M68kISD::ADD || Opc == M68kISD::SUB || Opc == M68kISD::ADDX ||
+           Opc == M68kISD::SUBX || Opc == M68kISD::SMUL ||
+           Opc == M68kISD::UMUL || Opc == M68kISD::OR || Opc == M68kISD::XOR ||
+           Opc == M68kISD::AND));
 }
 
 static bool isTruncWithZeroHighBitsInput(SDValue V, SelectionDAG &DAG) {
@@ -2194,17 +2189,9 @@ SDValue M68kTargetLowering::LowerSELECT(SDValue Op, SelectionDAG &DAG) const {
     default:
       llvm_unreachable("unexpected overflowing operator");
     }
-    if (CondOpcode == ISD::UMULO)
-      VTs = DAG.getVTList(LHS.getValueType(), LHS.getValueType(), MVT::i32);
-    else
-      VTs = DAG.getVTList(LHS.getValueType(), MVT::i32);
-
+    VTs = DAG.getVTList(LHS.getValueType(), MVT::i32);
     SDValue MxOp = DAG.getNode(MxOpcode, DL, VTs, LHS, RHS);
-
-    if (CondOpcode == ISD::UMULO)
-      Cond = MxOp.getValue(2);
-    else
-      Cond = MxOp.getValue(1);
+    Cond = MxOp.getValue(1);
 
     CC = DAG.getConstant(MxCond, DL, MVT::i8);
     addTest = false;
@@ -2397,17 +2384,9 @@ SDValue M68kTargetLowering::LowerBRCOND(SDValue Op, SelectionDAG &DAG) const {
     if (Inverted)
       MxCond = M68k::GetOppositeBranchCondition((M68k::CondCode)MxCond);
 
-    if (CondOpcode == ISD::UMULO)
-      VTs = DAG.getVTList(LHS.getValueType(), LHS.getValueType(), MVT::i8);
-    else
-      VTs = DAG.getVTList(LHS.getValueType(), MVT::i8);
-
+    VTs = DAG.getVTList(LHS.getValueType(), MVT::i8);
     SDValue MxOp = DAG.getNode(MxOpcode, DL, VTs, LHS, RHS);
-
-    if (CondOpcode == ISD::UMULO)
-      Cond = MxOp.getValue(2);
-    else
-      Cond = MxOp.getValue(1);
+    Cond = MxOp.getValue(1);
 
     CC = DAG.getConstant(MxCond, DL, MVT::i8);
     AddTest = false;
