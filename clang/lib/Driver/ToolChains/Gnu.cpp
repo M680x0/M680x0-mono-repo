@@ -635,7 +635,8 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       // LLVM support for atomics on 32-bit SPARC V8+ is incomplete, so
       // forcibly link with libatomic as a workaround.
       // TODO: Issue #41880 and D118021.
-      if (getToolChain().getTriple().getArch() == llvm::Triple::sparc) {
+      if (getToolChain().getTriple().getArch() == llvm::Triple::sparc ||
+          getToolChain().getTriple().getArch() == llvm::Triple::m68k) {
         CmdArgs.push_back("--push-state");
         CmdArgs.push_back("--as-needed");
         CmdArgs.push_back("-latomic");
