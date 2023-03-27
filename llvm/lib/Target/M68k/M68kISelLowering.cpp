@@ -104,9 +104,6 @@ M68kTargetLowering::M68kTargetLowering(const M68kTargetMachine &TM,
   for (auto OP : {ISD::SHL_PARTS, ISD::SRA_PARTS, ISD::SRL_PARTS})
     setOperationAction(OP, MVT::i32, Custom);
 
-  for (auto VT : {MVT::i1, MVT::i8, MVT::i16, MVT::i32})
-    setOperationAction(ISD::SIGN_EXTEND_INREG, VT, Expand);
-
   // Add/Sub overflow ops with MVT::Glues are lowered to CCR dependences.
   for (auto VT : {MVT::i8, MVT::i16, MVT::i32}) {
     setOperationAction(ISD::ADDC, VT, Custom);
@@ -183,8 +180,6 @@ M68kTargetLowering::M68kTargetLowering(const M68kTargetMachine &TM,
           ISD::ATOMIC_LOAD_MAX,
           ISD::ATOMIC_LOAD_UMIN,
           ISD::ATOMIC_LOAD_UMAX,
-          // FIXME: Can we implement i16 ATOMIC_SWAP with SWAP instruction?
-          ISD::ATOMIC_SWAP,
       },
       {MVT::i8, MVT::i16, MVT::i32}, LibCall);
 
