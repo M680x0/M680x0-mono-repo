@@ -2194,7 +2194,7 @@ SDValue M68kTargetLowering::LowerSELECT(SDValue Op, SelectionDAG &DAG) const {
     default:
       llvm_unreachable("unexpected overflowing operator");
     }
-    VTs = DAG.getVTList(LHS.getValueType(), MVT::i32);
+    VTs = DAG.getVTList(LHS.getValueType(), MVT::i8);
     SDValue MxOp = DAG.getNode(MxOpcode, DL, VTs, LHS, RHS);
     Cond = MxOp.getValue(1);
 
