@@ -104,6 +104,9 @@ M68kTargetLowering::M68kTargetLowering(const M68kTargetMachine &TM,
   for (auto OP : {ISD::SHL_PARTS, ISD::SRA_PARTS, ISD::SRL_PARTS})
     setOperationAction(OP, MVT::i32, Custom);
 
+  for (auto VT : {MVT::i1, MVT::i8, MVT::i16, MVT::i32})
+    setOperationAction(ISD::SIGN_EXTEND_INREG, VT, Expand);
+
   // Add/Sub overflow ops with MVT::Glues are lowered to CCR dependences.
   for (auto VT : {MVT::i8, MVT::i16, MVT::i32}) {
     setOperationAction(ISD::ADDC, VT, Custom);
