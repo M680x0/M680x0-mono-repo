@@ -183,6 +183,8 @@ M68kTargetLowering::M68kTargetLowering(const M68kTargetMachine &TM,
           ISD::ATOMIC_LOAD_MAX,
           ISD::ATOMIC_LOAD_UMIN,
           ISD::ATOMIC_LOAD_UMAX,
+          // FIXME: Can we implement i16 ATOMIC_SWAP with SWAP instruction?
+          ISD::ATOMIC_SWAP,
       },
       {MVT::i8, MVT::i16, MVT::i32}, LibCall);
 
