@@ -614,3 +614,40 @@ def : Pat<(i8  (trunc i32:$src)),
           (EXTRACT_SUBREG MxXRD32:$src, MxSubRegIndex8Lo)>;
 def : Pat<(i8  (trunc i16:$src)),
           (EXTRACT_SUBREG MxXRD16:$src, MxSubRegIndex8Lo)>;
+
+//===----------------------------------------------------------------------===//
+// FMOVE
+//===----------------------------------------------------------------------===//
+
+let Predicates = [AtLeastM68881] in {
+
+let Defs = [FPS] in
+class MxFMove<string size, dag outs, dag ins, list<dag> pattern>
+    : MxInst<outs, ins, "fmove."#size#"\t$src, $dst", pattern>;
+
+// FPR <- FPR
+let Uses = [FPC] in
+class MxFMove_FF<MxSize SIZE,
+                 MxOpBundle DST = !cast<MxOpBundle>("MxOp"#SIZE.Num#"AddrMode_fpr"),
+                 MxOpBundle SRC = !cast<MxOpBundle>("MxOp"#SIZE.Num#"AddrMode_fpr")>
+    : MxFMove<SIZE.Id, (outs DST.Op:$dst), (ins SRC.Op:$src),
+              [(null_frag)]> {
+  let Inst = (ascend
+    (descend 0b1111,
+      /*COPROCESSOR ID*/0b001,
+      0b000,
+      /*MODE + REGISTER*/0b000000
+    ),
+    (descend 0b0, /* R/M */0b0, 0b0,
+      /*SOURCE SPECIFIER*/
+      (operand "$src", 3),
+      /*DESTINATION*/
+      (operand "$dst", 3),
+      /*OPMODE = FMOVE*/
+      0b0000000
+    )
+  );
+}
+
+def FMOV80fp_fp : MxFMove_FF<MxSizeF80>;
+} // Predicates = [AtLeastM68881]
