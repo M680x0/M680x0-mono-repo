@@ -116,13 +116,14 @@ def XR32 : MxRegClass<[i32], 32, (add DR32, AR32)>;
 
 def SPC  : MxRegClass<[i32], 32, (add SP)>;
 
-// Floating Point Register Classes
+// Floating Point Data Registers
 def FPDR : MxRegClass<[f80], 32, (sequence "FP%u", 0, 7)>;
-def FPCR : MxRegClass<[i32], 32, (add FPC, FPS, FPIAR)>;
 
 let CopyCost = -1 in {
   def CCRC : MxRegClass<[i8],  16, (add CCR)>;
   def SRC  : MxRegClass<[i16], 16, (add SR)>;
+
+  def FPCR : MxRegClass<[i32], 32, (add FPC, FPS, FPIAR)>;
 }
 
 let isAllocatable = 0 in {
