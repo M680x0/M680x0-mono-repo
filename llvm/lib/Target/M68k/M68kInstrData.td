@@ -619,19 +619,23 @@ def : Pat<(i8  (trunc i16:$src)),
 // FMOVE
 //===----------------------------------------------------------------------===//
 
-let Predicates = [AtLeastM68881] in {
-
 let Defs = [FPS] in
-class MxFMove<string size, dag outs, dag ins, list<dag> pattern>
-    : MxInst<outs, ins, "fmove."#size#"\t$src, $dst", pattern>;
+class MxFMove<string size, dag outs, dag ins, list<dag> pattern,
+              string rounding = "">
+    : MxInst<outs, ins,
+             "f"#rounding#"move."#size#"\t$src, $dst", pattern> {
+  // Only FMOVE uses FPC
+  let Uses = !if(!eq(rounding, ""), [FPC], []);
+
+  // FSMOVE and FDMOVE are only available after M68040
+  let Predicates = [!if(!eq(rounding, ""), AtLeastM68881, AtLeastM68040)];
+}
 
 // FPR <- FPR
-let Uses = [FPC] in
-class MxFMove_FF<MxSize SIZE,
-                 MxOpBundle DST = !cast<MxOpBundle>("MxOp"#SIZE.Num#"AddrMode_fpr"),
-                 MxOpBundle SRC = !cast<MxOpBundle>("MxOp"#SIZE.Num#"AddrMode_fpr")>
-    : MxFMove<SIZE.Id, (outs DST.Op:$dst), (ins SRC.Op:$src),
-              [(null_frag)]> {
+foreach rounding = ["", "s", "d"] in
+def F#!toupper(rounding)#MOV80fp_fp
+    : MxFMove<"x", (outs MxOp80AddrMode_fpr.Op:$dst), (ins MxOp80AddrMode_fpr.Op:$src),
+              [(null_frag)], rounding> {
   let Inst = (ascend
     (descend 0b1111,
       /*COPROCESSOR ID*/0b001,
@@ -643,11 +647,10 @@ class MxFMove_FF<MxSize SIZE,
       (operand "$src", 3),
       /*DESTINATION*/
       (operand "$dst", 3),
-      /*OPMODE = FMOVE*/
-      0b0000000
+      /*OPMODE*/
+      !cond(!eq(rounding, "s"): 0b1000000,
+            !eq(rounding, "d"): 0b1000100,
+            true: 0b0000000)
     )
   );
 }
-
-def FMOV80fp_fp : MxFMove_FF<MxSizeF80>;
-} // Predicates = [AtLeastM68881]
