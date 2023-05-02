@@ -260,8 +260,8 @@ bool M68kExpandPseudo::ExpandMI(MachineBasicBlock &MBB,
     if (StackAdj == 0) {
       MIB = BuildMI(MBB, MBBI, DL, TII->get(M68k::RTS));
     } else if (isUInt<16>(StackAdj)) {
-
-      if (STI->atLeastM68020()) {
+      auto &F = MBB.getParent()->getFunction();
+      if (STI->atLeastM68010() && F.getCallingConv() == CallingConv::M68k_RTD) {
         llvm_unreachable("RTD is not implemented");
       } else {
         // Copy PC from stack to a free address(A0 or A1) register
