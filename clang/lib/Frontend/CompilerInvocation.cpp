@@ -553,9 +553,10 @@ static bool FixupInvocation(CompilerInvocation &Invocation,
   if (Arg *A = Args.getLastArg(OPT_fdefault_calling_conv_EQ)) {
     auto DefaultCC = LangOpts.getDefaultCallingConv();
 
-    bool emitError = (DefaultCC == LangOptions::DCC_FastCall ||
-                      DefaultCC == LangOptions::DCC_StdCall) &&
+    bool emitError = DefaultCC == LangOptions::DCC_FastCall &&
                      Arch != llvm::Triple::x86;
+    emitError |= DefaultCC == LangOptions::DCC_StdCall &&
+                 !(Arch == llvm::Triple::m68k || Arch == llvm::Triple::x86);
     emitError |= (DefaultCC == LangOptions::DCC_VectorCall ||
                   DefaultCC == LangOptions::DCC_RegCall) &&
                  !T.isX86();
@@ -3747,7 +3748,8 @@ bool CompilerInvocation::ParseLangArgs(LangOptions &Opts, ArgList &Args,
       Diags.Report(diag::err_drv_argument_not_allowed_with)
           << A->getSpelling() << "-fdefault-calling-conv";
     else {
-      if (T.getArch() != llvm::Triple::x86)
+      if (T.getArch() != llvm::Triple::x86 &&
+          T.getArch() != llvm::Triple::m68k)
         Diags.Report(diag::err_drv_argument_not_allowed_with)
             << A->getSpelling() << T.getTriple();
       else

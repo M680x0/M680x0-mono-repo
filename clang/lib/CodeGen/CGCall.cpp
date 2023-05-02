@@ -48,7 +48,8 @@ using namespace CodeGen;
 unsigned CodeGenTypes::ClangCallConvToLLVMCallConv(CallingConv CC) {
   switch (CC) {
   default: return llvm::CallingConv::C;
-  case CC_X86StdCall: return llvm::CallingConv::X86_StdCall;
+  case CC_X86StdCall: return CGM.getTriple().getArch() == llvm::Triple::m68k ?
+                      llvm::CallingConv::M68k_RTD : llvm::CallingConv::X86_StdCall;
   case CC_X86FastCall: return llvm::CallingConv::X86_FastCall;
   case CC_X86RegCall: return llvm::CallingConv::X86_RegCall;
   case CC_X86ThisCall: return llvm::CallingConv::X86_ThisCall;
