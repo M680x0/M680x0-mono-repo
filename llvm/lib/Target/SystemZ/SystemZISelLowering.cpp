@@ -186,8 +186,8 @@ SystemZTargetLowering::SystemZTargetLowering(const TargetMachine &TM,
       setOperationAction(ISD::USUBO, VT, Custom);
 
       // Support carry in as value rather than glue.
-      setOperationAction(ISD::ADDCARRY, VT, Custom);
-      setOperationAction(ISD::SUBCARRY, VT, Custom);
+      setOperationAction(ISD::UADDO_CARRY, VT, Custom);
+      setOperationAction(ISD::USUBO_CARRY, VT, Custom);
 
       // Lower ATOMIC_LOAD and ATOMIC_STORE into normal volatile loads and
       // stores, putting a serialization instruction after the stores.
@@ -399,9 +399,6 @@ SystemZTargetLowering::SystemZTargetLowering(const TargetMachine &TM,
       // Map SETCCs onto one of VCE, VCH or VCHL, swapping the operands
       // and inverting the result as necessary.
       setOperationAction(ISD::SETCC, VT, Custom);
-      setOperationAction(ISD::STRICT_FSETCC, VT, Custom);
-      if (Subtarget.hasVectorEnhancements1())
-        setOperationAction(ISD::STRICT_FSETCCS, VT, Custom);
     }
   }
 
@@ -537,6 +534,15 @@ SystemZTargetLowering::SystemZTargetLowering(const TargetMachine &TM,
     setOperationAction(ISD::STRICT_FCEIL, MVT::v2f64, Legal);
     setOperationAction(ISD::STRICT_FTRUNC, MVT::v2f64, Legal);
     setOperationAction(ISD::STRICT_FROUND, MVT::v2f64, Legal);
+
+    setOperationAction(ISD::SETCC, MVT::v2f64, Custom);
+    setOperationAction(ISD::SETCC, MVT::v4f32, Custom);
+    setOperationAction(ISD::STRICT_FSETCC, MVT::v2f64, Custom);
+    setOperationAction(ISD::STRICT_FSETCC, MVT::v4f32, Custom);
+    if (Subtarget.hasVectorEnhancements1()) {
+      setOperationAction(ISD::STRICT_FSETCCS, MVT::v2f64, Custom);
+      setOperationAction(ISD::STRICT_FSETCCS, MVT::v4f32, Custom);
+    }
   }
 
   // The vector enhancements facility 1 has instructions for these.
@@ -1438,10 +1444,8 @@ static SDValue convertValVTToLocVT(SelectionDAG &DAG, const SDLoc &DL,
 
 static SDValue lowerI128ToGR128(SelectionDAG &DAG, SDValue In) {
   SDLoc DL(In);
-  SDValue Lo = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i64, In,
-                           DAG.getIntPtrConstant(0, DL));
-  SDValue Hi = DAG.getNode(ISD::EXTRACT_ELEMENT, DL, MVT::i64, In,
-                           DAG.getIntPtrConstant(1, DL));
+  SDValue Lo, Hi;
+  std::tie(Lo, Hi) = DAG.SplitScalar(In, DL, MVT::i64, MVT::i64);
   SDNode *Pair = DAG.getMachineNode(SystemZ::PAIR128, DL,
                                     MVT::Untyped, Hi, Lo);
   return SDValue(Pair, 0);
@@ -1604,8 +1608,9 @@ SDValue SystemZTargetLowering::LowerFormalArguments(
 
     // Likewise the address (in the form of a frame index) of where the
     // first stack vararg would be.  The 1-byte size here is arbitrary.
-    int64_t StackSize = CCInfo.getNextStackOffset();
-    FuncInfo->setVarArgsFrameIndex(MFI.CreateFixedObject(1, StackSize, true));
+    int64_t VarArgsOffset = CCInfo.getStackSize();
+    FuncInfo->setVarArgsFrameIndex(
+        MFI.CreateFixedObject(1, VarArgsOffset, true));
 
     // ...and a similar frame index for the caller-allocated save area
     // that will be used to store the incoming registers.
@@ -1701,7 +1706,7 @@ SystemZTargetLowering::LowerCall(CallLoweringInfo &CLI,
     IsTailCall = false;
 
   // Get a count of how many bytes are to be pushed on the stack.
-  unsigned NumBytes = ArgCCInfo.getNextStackOffset();
+  unsigned NumBytes = ArgCCInfo.getStackSize();
 
   if (Subtarget.isTargetXPLINK64())
     // Although the XPLINK specifications for AMODE64 state that minimum size
@@ -1851,8 +1856,11 @@ SystemZTargetLowering::LowerCall(CallLoweringInfo &CLI,
 
   // Emit the call.
   SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
-  if (IsTailCall)
-    return DAG.getNode(SystemZISD::SIBCALL, DL, NodeTys, Ops);
+  if (IsTailCall) {
+    SDValue Ret = DAG.getNode(SystemZISD::SIBCALL, DL, NodeTys, Ops);
+    DAG.addNoMergeSiteInfo(Ret.getNode(), CLI.NoMerge);
+    return Ret;
+  }
   Chain = DAG.getNode(SystemZISD::CALL, DL, NodeTys, Ops);
   DAG.addNoMergeSiteInfo(Chain.getNode(), CLI.NoMerge);
   Glue = Chain.getValue(1);
@@ -1957,7 +1965,7 @@ SystemZTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
 
   // Quick exit for void returns
   if (RetLocs.empty())
-    return DAG.getNode(SystemZISD::RET_FLAG, DL, MVT::Other, Chain);
+    return DAG.getNode(SystemZISD::RET_GLUE, DL, MVT::Other, Chain);
 
   if (CallConv == CallingConv::GHC)
     report_fatal_error("GHC functions return void only");
@@ -1988,7 +1996,7 @@ SystemZTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
   if (Glue.getNode())
     RetOps.push_back(Glue);
 
-  return DAG.getNode(SystemZISD::RET_FLAG, DL, MVT::Other, RetOps);
+  return DAG.getNode(SystemZISD::RET_GLUE, DL, MVT::Other, RetOps);
 }
 
 // Return true if Op is an intrinsic node with chain that returns the CC value
@@ -3997,20 +4005,20 @@ SDValue SystemZTargetLowering::lowerXALUO(SDValue Op,
 }
 
 static bool isAddCarryChain(SDValue Carry) {
-  while (Carry.getOpcode() == ISD::ADDCARRY)
+  while (Carry.getOpcode() == ISD::UADDO_CARRY)
     Carry = Carry.getOperand(2);
   return Carry.getOpcode() == ISD::UADDO;
 }
 
 static bool isSubBorrowChain(SDValue Carry) {
-  while (Carry.getOpcode() == ISD::SUBCARRY)
+  while (Carry.getOpcode() == ISD::USUBO_CARRY)
     Carry = Carry.getOperand(2);
   return Carry.getOpcode() == ISD::USUBO;
 }
 
-// Lower ADDCARRY/SUBCARRY nodes.
-SDValue SystemZTargetLowering::lowerADDSUBCARRY(SDValue Op,
-                                                SelectionDAG &DAG) const {
+// Lower UADDO_CARRY/USUBO_CARRY nodes.
+SDValue SystemZTargetLowering::lowerUADDSUBO_CARRY(SDValue Op,
+                                                   SelectionDAG &DAG) const {
 
   SDNode *N = Op.getNode();
   MVT VT = N->getSimpleValueType(0);
@@ -4029,7 +4037,7 @@ SDValue SystemZTargetLowering::lowerADDSUBCARRY(SDValue Op,
 
   switch (Op.getOpcode()) {
   default: llvm_unreachable("Unknown instruction!");
-  case ISD::ADDCARRY:
+  case ISD::UADDO_CARRY:
     if (!isAddCarryChain(Carry))
       return SDValue();
 
@@ -4037,7 +4045,7 @@ SDValue SystemZTargetLowering::lowerADDSUBCARRY(SDValue Op,
     CCValid = SystemZ::CCMASK_LOGICAL;
     CCMask = SystemZ::CCMASK_LOGICAL_CARRY;
     break;
-  case ISD::SUBCARRY:
+  case ISD::USUBO_CARRY:
     if (!isSubBorrowChain(Carry))
       return SDValue();
 
@@ -5743,9 +5751,9 @@ SDValue SystemZTargetLowering::LowerOperation(SDValue Op,
   case ISD::UADDO:
   case ISD::USUBO:
     return lowerXALUO(Op, DAG);
-  case ISD::ADDCARRY:
-  case ISD::SUBCARRY:
-    return lowerADDSUBCARRY(Op, DAG);
+  case ISD::UADDO_CARRY:
+  case ISD::USUBO_CARRY:
+    return lowerUADDSUBO_CARRY(Op, DAG);
   case ISD::OR:
     return lowerOR(Op, DAG);
   case ISD::CTPOP:
@@ -5914,7 +5922,7 @@ const char *SystemZTargetLowering::getTargetNodeName(unsigned Opcode) const {
 #define OPCODE(NAME) case SystemZISD::NAME: return "SystemZISD::" #NAME
   switch ((SystemZISD::NodeType)Opcode) {
     case SystemZISD::FIRST_NUMBER: break;
-    OPCODE(RET_FLAG);
+    OPCODE(RET_GLUE);
     OPCODE(CALL);
     OPCODE(SIBCALL);
     OPCODE(TLS_GDCALL);
@@ -7272,7 +7280,7 @@ static void computeKnownBitsBinOp(const SDValue Op, KnownBits &Known,
       DAG.computeKnownBits(Op.getOperand(OpNo), Src0DemE, Depth + 1);
   KnownBits RHSKnown =
       DAG.computeKnownBits(Op.getOperand(OpNo + 1), Src1DemE, Depth + 1);
-  Known = KnownBits::commonBits(LHSKnown, RHSKnown);
+  Known = LHSKnown.intersectWith(RHSKnown);
 }
 
 void
@@ -8504,11 +8512,13 @@ SystemZTargetLowering::emitMemMemWrapper(MachineInstr &MI,
           .addReg(RemSrcReg).addImm(SrcDisp);
       MBB->addSuccessor(AllDoneMBB);
       MBB = AllDoneMBB;
-      if (EndMBB) {
+      if (Opcode != SystemZ::MVC) {
         EXRL_MIB.addReg(SystemZ::CC, RegState::ImplicitDefine);
-        MBB->addLiveIn(SystemZ::CC);
+        if (EndMBB)
+          MBB->addLiveIn(SystemZ::CC);
       }
     }
+    MF.getProperties().reset(MachineFunctionProperties::Property::NoPHIs);
   }
 
   // Handle any remaining bytes with straight-line code.

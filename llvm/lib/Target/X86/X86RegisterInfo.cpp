@@ -812,7 +812,7 @@ void X86RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     int Offset = FIOffset + Imm;
     assert((!Is64Bit || isInt<32>((long long)FIOffset + Imm)) &&
            "Requesting 64-bit offset in 32-bit immediate!");
-    if (Offset != 0 || !tryOptimizeLEAtoMOV(II))
+    if (Offset != 0)
       MI.getOperand(FIOperandNum + 3).ChangeToImmediate(Offset);
   } else {
     // Offset is symbolic. This is extremely rare.
@@ -932,8 +932,7 @@ unsigned X86RegisterInfo::findDeadCallerSavedReg(
   case X86::EH_RETURN:
   case X86::EH_RETURN64: {
     SmallSet<uint16_t, 8> Uses;
-    for (unsigned I = 0, E = MBBI->getNumOperands(); I != E; ++I) {
-      MachineOperand &MO = MBBI->getOperand(I);
+    for (MachineOperand &MO : MBBI->operands()) {
       if (!MO.isReg() || MO.isDef())
         continue;
       Register Reg = MO.getReg();
@@ -1003,6 +1002,8 @@ static ShapeT getTileShape(Register VirtReg, VirtRegMap *VRM,
   case X86::PTILEZEROV:
   case X86::PTDPBF16PSV:
   case X86::PTDPFP16PSV:
+  case X86::PTCMMIMFP16PSV:
+  case X86::PTCMMRLFP16PSV:
     MachineOperand &MO1 = MI->getOperand(1);
     MachineOperand &MO2 = MI->getOperand(2);
     ShapeT Shape(&MO1, &MO2, MRI);

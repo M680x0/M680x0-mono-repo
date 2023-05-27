@@ -196,7 +196,7 @@ public:
 
   void emitXCOFFRefDirective(const MCSymbol *Symbol) override;
 
-  void emitXCOFFExceptDirective(const MCSymbol *Symbol, 
+  void emitXCOFFExceptDirective(const MCSymbol *Symbol,
                                 const MCSymbol *Trap,
                                 unsigned Lang, unsigned Reason,
                                 unsigned FunctionSize, bool hasDebug) override;
@@ -377,8 +377,9 @@ public:
   void emitInstruction(const MCInst &Inst, const MCSubtargetInfo &STI) override;
 
   void emitPseudoProbe(uint64_t Guid, uint64_t Index, uint64_t Type,
-                       uint64_t Attr,
-                       const MCPseudoProbeInlineStack &InlineStack, MCSymbol *FnSym) override;
+                       uint64_t Attr, uint64_t Discriminator,
+                       const MCPseudoProbeInlineStack &InlineStack,
+                       MCSymbol *FnSym) override;
 
   void emitBundleAlignMode(Align Alignment) override;
   void emitBundleLock(bool AlignToEnd) override;
@@ -950,7 +951,7 @@ void MCAsmStreamer::emitXCOFFRefDirective(const MCSymbol *Symbol) {
 }
 
 void MCAsmStreamer::emitXCOFFExceptDirective(const MCSymbol *Symbol,
-                                             const MCSymbol *Trap, 
+                                             const MCSymbol *Trap,
                                              unsigned Lang,
                                              unsigned Reason,
                                              unsigned FunctionSize,
@@ -2218,13 +2219,12 @@ void MCAsmStreamer::AddEncodingComment(const MCInst &Inst,
   raw_ostream &OS = getCommentOS();
   SmallString<256> Code;
   SmallVector<MCFixup, 4> Fixups;
-  raw_svector_ostream VecOS(Code);
 
   // If we have no code emitter, don't emit code.
   if (!getAssembler().getEmitterPtr())
     return;
 
-  getAssembler().getEmitter().encodeInstruction(Inst, VecOS, Fixups, STI);
+  getAssembler().getEmitter().encodeInstruction(Inst, Code, Fixups, STI);
 
   // If we are showing fixups, create symbolic markers in the encoded
   // representation. We do this by making a per-bit map to the fixup item index,
@@ -2337,11 +2337,14 @@ void MCAsmStreamer::emitInstruction(const MCInst &Inst,
   EmitEOL();
 }
 
-void MCAsmStreamer::emitPseudoProbe(
-    uint64_t Guid, uint64_t Index, uint64_t Type, uint64_t Attr,
-    const MCPseudoProbeInlineStack &InlineStack, MCSymbol *FnSym) {
-  OS << "\t.pseudoprobe\t" << Guid << " " << Index << " " << Type << " "
-     << Attr;
+void MCAsmStreamer::emitPseudoProbe(uint64_t Guid, uint64_t Index,
+                                    uint64_t Type, uint64_t Attr,
+                                    uint64_t Discriminator,
+                                    const MCPseudoProbeInlineStack &InlineStack,
+                                    MCSymbol *FnSym) {
+  OS << "\t.pseudoprobe\t" << Guid << " " << Index << " " << Type << " " << Attr;
+  if (Discriminator)
+    OS << " " << Discriminator;
   // Emit inline stack like
   //  @ GUIDmain:3 @ GUIDCaller:1 @ GUIDDirectCaller:11
   for (const auto &Site : InlineStack)

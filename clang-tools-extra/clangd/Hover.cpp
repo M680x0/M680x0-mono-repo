@@ -12,6 +12,7 @@
 #include "CodeCompletionStrings.h"
 #include "Config.h"
 #include "FindTarget.h"
+#include "Headers.h"
 #include "IncludeCleaner.h"
 #include "ParsedAST.h"
 #include "Selection.h"
@@ -38,11 +39,15 @@
 #include "clang/AST/RecordLayout.h"
 #include "clang/AST/Type.h"
 #include "clang/Basic/CharInfo.h"
+#include "clang/Basic/LLVM.h"
 #include "clang/Basic/SourceLocation.h"
+#include "clang/Basic/SourceManager.h"
 #include "clang/Basic/Specifiers.h"
 #include "clang/Basic/TokenKinds.h"
 #include "clang/Index/IndexSymbol.h"
 #include "clang/Tooling/Syntax/Tokens.h"
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringExtras.h"
@@ -52,6 +57,7 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/ScopedPrinter.h"
 #include "llvm/Support/raw_ostream.h"
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <vector>
@@ -457,8 +463,23 @@ std::optional<std::string> printExprValue(const Expr *E,
   return Constant.Val.getAsString(Ctx, T);
 }
 
-std::optional<std::string> printExprValue(const SelectionTree::Node *N,
-                                          const ASTContext &Ctx) {
+struct PrintExprResult {
+  /// The evaluation result on expression `Expr`.
+  std::optional<std::string> PrintedValue;
+  /// The Expr object that represents the closest evaluable
+  /// expression.
+  const clang::Expr *TheExpr;
+  /// The node of selection tree where the traversal stops.
+  const SelectionTree::Node *TheNode;
+};
+
+// Seek the closest evaluable expression along the ancestors of node N
+// in a selection tree. If a node in the path can be converted to an evaluable
+// Expr, a possible evaluation would happen and the associated context
+// is returned.
+// If evaluation couldn't be done, return the node where the traversal ends.
+PrintExprResult printExprValue(const SelectionTree::Node *N,
+                               const ASTContext &Ctx) {
   for (; N; N = N->Parent) {
     // Try to evaluate the first evaluatable enclosing expression.
     if (const Expr *E = N->ASTNode.get<Expr>()) {
@@ -467,14 +488,16 @@ std::optional<std::string> printExprValue(const SelectionTree::Node *N,
       if (!E->getType().isNull() && E->getType()->isVoidType())
         break;
       if (auto Val = printExprValue(E, Ctx))
-        return Val;
+        return PrintExprResult{/*PrintedValue=*/std::move(Val), /*Expr=*/E,
+                               /*Node=*/N};
     } else if (N->ASTNode.get<Decl>() || N->ASTNode.get<Stmt>()) {
       // Refuse to cross certain non-exprs. (TypeLoc are OK as part of Exprs).
       // This tries to ensure we're showing a value related to the cursor.
       break;
     }
   }
-  return std::nullopt;
+  return PrintExprResult{/*PrintedValue=*/std::nullopt, /*Expr=*/nullptr,
+                         /*Node=*/N};
 }
 
 std::optional<StringRef> fieldName(const Expr *E) {
@@ -671,6 +694,54 @@ getPredefinedExprHoverContents(const PredefinedExpr &PE, ASTContext &Ctx,
   return HI;
 }
 
+HoverInfo evaluateMacroExpansion(unsigned int SpellingBeginOffset,
+                                 unsigned int SpellingEndOffset,
+                                 llvm::ArrayRef<syntax::Token> Expanded,
+                                 ParsedAST &AST) {
+  auto &Context = AST.getASTContext();
+  auto &Tokens = AST.getTokens();
+  auto PP = getPrintingPolicy(Context.getPrintingPolicy());
+  auto Tree = SelectionTree::createRight(Context, Tokens, SpellingBeginOffset,
+                                         SpellingEndOffset);
+
+  // If macro expands to one single token, rule out punctuator or digraph.
+  // E.g., for the case `array L_BRACKET 42 R_BRACKET;` where L_BRACKET and
+  // R_BRACKET expand to
+  // '[' and ']' respectively, we don't want the type of
+  // 'array[42]' when user hovers on L_BRACKET.
+  if (Expanded.size() == 1)
+    if (tok::getPunctuatorSpelling(Expanded[0].kind()))
+      return {};
+
+  auto *StartNode = Tree.commonAncestor();
+  if (!StartNode)
+    return {};
+  // If the common ancestor is partially selected, do evaluate if it has no
+  // children, thus we can disallow evaluation on incomplete expression.
+  // For example,
+  // #define PLUS_2 +2
+  // 40 PL^US_2
+  // In this case we don't want to present 'value: 2' as PLUS_2 actually expands
+  // to a non-value rather than a binary operand.
+  if (StartNode->Selected == SelectionTree::Selection::Partial)
+    if (!StartNode->Children.empty())
+      return {};
+
+  HoverInfo HI;
+  // Attempt to evaluate it from Expr first.
+  auto ExprResult = printExprValue(StartNode, Context);
+  HI.Value = std::move(ExprResult.PrintedValue);
+  if (auto *E = ExprResult.TheExpr)
+    HI.Type = printType(E->getType(), Context, PP);
+
+  // If failed, extract the type from Decl if possible.
+  if (!HI.Value && !HI.Type && ExprResult.TheNode)
+    if (auto *VD = ExprResult.TheNode->ASTNode.get<VarDecl>())
+      HI.Type = printType(VD->getType(), Context, PP);
+
+  return HI;
+}
+
 /// Generate a \p Hover object given the macro \p MacroDecl.
 HoverInfo getHoverContents(const DefinedMacro &Macro, const syntax::Token &Tok,
                            ParsedAST &AST) {
@@ -726,6 +797,13 @@ HoverInfo getHoverContents(const DefinedMacro &Macro, const syntax::Token &Tok,
       HI.Definition += "// Expands to\n";
       HI.Definition += ExpansionText;
     }
+
+    auto Evaluated = evaluateMacroExpansion(
+        /*SpellingBeginOffset=*/SM.getFileOffset(Tok.location()),
+        /*SpellingEndOffset=*/SM.getFileOffset(Tok.endLocation()),
+        /*Expanded=*/Expansion->Expanded, AST);
+    HI.Value = std::move(Evaluated.Value);
+    HI.Type = std::move(Evaluated.Type);
   }
   return HI;
 }
@@ -975,12 +1053,23 @@ void maybeAddCalleeArgInfo(const SelectionTree::Node *N, HoverInfo &HI,
   const auto &OuterNode = N->outerImplicit();
   if (!OuterNode.Parent)
     return;
-  const auto *CE = OuterNode.Parent->ASTNode.get<CallExpr>();
-  if (!CE)
+
+  const FunctionDecl *FD = nullptr;
+  llvm::ArrayRef<const Expr *> Args;
+
+  if (const auto *CE = OuterNode.Parent->ASTNode.get<CallExpr>()) {
+    FD = CE->getDirectCallee();
+    Args = {CE->getArgs(), CE->getNumArgs()};
+  } else if (const auto *CE =
+                 OuterNode.Parent->ASTNode.get<CXXConstructExpr>()) {
+    FD = CE->getConstructor();
+    Args = {CE->getArgs(), CE->getNumArgs()};
+  }
+  if (!FD)
     return;
-  const FunctionDecl *FD = CE->getDirectCallee();
-  // For non-function-call-like operatators (e.g. operator+, operator<<) it's
-  // not immediattely obvious what the "passed as" would refer to and, given
+
+  // For non-function-call-like operators (e.g. operator+, operator<<) it's
+  // not immediately obvious what the "passed as" would refer to and, given
   // fixed function signature, the value would be very low anyway, so we choose
   // to not support that.
   // Both variadic functions and operator() (especially relevant for lambdas)
@@ -990,13 +1079,15 @@ void maybeAddCalleeArgInfo(const SelectionTree::Node *N, HoverInfo &HI,
 
   HoverInfo::PassType PassType;
 
+  auto Parameters = resolveForwardingParameters(FD);
+
   // Find argument index for N.
-  for (unsigned I = 0; I < CE->getNumArgs() && I < FD->getNumParams(); ++I) {
-    if (CE->getArg(I) != OuterNode.ASTNode.get<Expr>())
+  for (unsigned I = 0; I < Args.size() && I < Parameters.size(); ++I) {
+    if (Args[I] != OuterNode.ASTNode.get<Expr>())
       continue;
 
     // Extract matching argument from function declaration.
-    if (const ParmVarDecl *PVD = FD->getParamDecl(I)) {
+    if (const ParmVarDecl *PVD = Parameters[I]) {
       HI.CalleeArgInfo.emplace(toHoverInfoParam(PVD, PP));
       if (N == &OuterNode)
         PassType.PassBy = getPassMode(PVD->getType());
@@ -1134,11 +1225,61 @@ void maybeAddSymbolProviders(ParsedAST &AST, HoverInfo &HI,
   HI.Provider = spellHeader(AST, SM.getFileEntryForID(SM.getMainFileID()), H);
 }
 
+// FIXME: similar functions are present in FindHeaders.cpp (symbolName)
+// and IncludeCleaner.cpp (getSymbolName). Introduce a name() method into
+// include_cleaner::Symbol instead.
+std::string getSymbolName(include_cleaner::Symbol Sym) {
+  std::string Name;
+  switch (Sym.kind()) {
+  case include_cleaner::Symbol::Declaration:
+    if (const auto *ND = llvm::dyn_cast<NamedDecl>(&Sym.declaration()))
+      Name = ND->getDeclName().getAsString();
+    break;
+  case include_cleaner::Symbol::Macro:
+    Name = Sym.macro().Name->getName();
+    break;
+  }
+  return Name;
+}
+
+void maybeAddUsedSymbols(ParsedAST &AST, HoverInfo &HI, const Inclusion &Inc) {
+  const SourceManager &SM = AST.getSourceManager();
+  const auto &ConvertedMainFileIncludes =
+      convertIncludes(SM, AST.getIncludeStructure().MainFileIncludes);
+  const auto &HoveredInclude = convertIncludes(SM, llvm::ArrayRef{Inc});
+  llvm::DenseSet<include_cleaner::Symbol> UsedSymbols;
+  include_cleaner::walkUsed(
+      AST.getLocalTopLevelDecls(), collectMacroReferences(AST),
+      AST.getPragmaIncludes(), SM,
+      [&](const include_cleaner::SymbolReference &Ref,
+          llvm::ArrayRef<include_cleaner::Header> Providers) {
+        if (Ref.RT != include_cleaner::RefType::Explicit ||
+            UsedSymbols.contains(Ref.Target))
+          return;
+
+        auto Provider =
+            firstMatchedProvider(ConvertedMainFileIncludes, Providers);
+        if (!Provider || HoveredInclude.match(*Provider).empty())
+          return;
+
+        UsedSymbols.insert(Ref.Target);
+      });
+
+  for (const auto &UsedSymbolDecl : UsedSymbols)
+    HI.UsedSymbolNames.push_back(getSymbolName(UsedSymbolDecl));
+  llvm::sort(HI.UsedSymbolNames);
+  HI.UsedSymbolNames.erase(
+      std::unique(HI.UsedSymbolNames.begin(), HI.UsedSymbolNames.end()),
+      HI.UsedSymbolNames.end());
+}
+
 } // namespace
 
 std::optional<HoverInfo> getHover(ParsedAST &AST, Position Pos,
                                   const format::FormatStyle &Style,
                                   const SymbolIndex *Index) {
+  static constexpr trace::Metric HoverCountMetric(
+      "hover", trace::Metric::Counter, "case");
   PrintingPolicy PP =
       getPrintingPolicy(AST.getASTContext().getPrintingPolicy());
   const SourceManager &SM = AST.getSourceManager();
@@ -1157,12 +1298,14 @@ std::optional<HoverInfo> getHover(ParsedAST &AST, Position Pos,
   for (const auto &Inc : AST.getIncludeStructure().MainFileIncludes) {
     if (Inc.Resolved.empty() || Inc.HashLine != Pos.line)
       continue;
+    HoverCountMetric.record(1, "include");
     HoverInfo HI;
     HI.Name = std::string(llvm::sys::path::filename(Inc.Resolved));
     // FIXME: We don't have a fitting value for Kind.
     HI.Definition =
         URIForFile::canonicalize(Inc.Resolved, AST.tuPath()).file().str();
     HI.DefinitionLanguage = "";
+    maybeAddUsedSymbols(AST, HI, Inc);
     return HI;
   }
 
@@ -1180,6 +1323,7 @@ std::optional<HoverInfo> getHover(ParsedAST &AST, Position Pos,
       // Prefer the identifier token as a fallback highlighting range.
       HighlightRange = Tok.range(SM).toCharRange(SM);
       if (auto M = locateMacroAt(Tok, AST.getPreprocessor())) {
+        HoverCountMetric.record(1, "macro");
         HI = getHoverContents(*M, Tok, AST);
         if (auto DefLoc = M->Info->getDefinitionLoc(); DefLoc.isValid()) {
           include_cleaner::Macro IncludeCleanerMacro{
@@ -1190,6 +1334,7 @@ std::optional<HoverInfo> getHover(ParsedAST &AST, Position Pos,
         break;
       }
     } else if (Tok.kind() == tok::kw_auto || Tok.kind() == tok::kw_decltype) {
+      HoverCountMetric.record(1, "keyword");
       if (auto Deduced = getDeducedType(AST.getASTContext(), Tok.location())) {
         HI = getDeducedTypeHoverContents(*Deduced, Tok, AST.getASTContext(), PP,
                                          Index);
@@ -1216,18 +1361,21 @@ std::optional<HoverInfo> getHover(ParsedAST &AST, Position Pos,
       auto Decls = explicitReferenceTargets(N->ASTNode, DeclRelation::Alias,
                                             AST.getHeuristicResolver());
       if (const auto *DeclToUse = pickDeclToUse(Decls)) {
+        HoverCountMetric.record(1, "decl");
         HI = getHoverContents(DeclToUse, PP, Index, TB);
         // Layout info only shown when hovering on the field/class itself.
         if (DeclToUse == N->ASTNode.get<Decl>())
           addLayoutInfo(*DeclToUse, *HI);
         // Look for a close enclosing expression to show the value of.
         if (!HI->Value)
-          HI->Value = printExprValue(N, AST.getASTContext());
+          HI->Value = printExprValue(N, AST.getASTContext()).PrintedValue;
         maybeAddCalleeArgInfo(N, *HI, PP);
         maybeAddSymbolProviders(AST, *HI, include_cleaner::Symbol{*DeclToUse});
       } else if (const Expr *E = N->ASTNode.get<Expr>()) {
+        HoverCountMetric.record(1, "expr");
         HI = getHoverContents(N, E, AST, PP, Index);
       } else if (const Attr *A = N->ASTNode.get<Attr>()) {
+        HoverCountMetric.record(1, "attribute");
         HI = getHoverContents(A, AST);
       }
       // FIXME: support hovers for other nodes?
@@ -1376,6 +1524,24 @@ markup::Document HoverInfo::present() const {
     }
 
     Output.addCodeBlock(Buffer, DefinitionLanguage);
+  }
+
+  if (!UsedSymbolNames.empty()) {
+    Output.addRuler();
+    markup::Paragraph &P = Output.addParagraph();
+    P.appendText("provides ");
+
+    const std::vector<std::string>::size_type SymbolNamesLimit = 5;
+    auto Front = llvm::ArrayRef(UsedSymbolNames).take_front(SymbolNamesLimit);
+
+    llvm::interleave(
+        Front, [&](llvm::StringRef Sym) { P.appendCode(Sym); },
+        [&] { P.appendText(", "); });
+    if (UsedSymbolNames.size() > Front.size()) {
+      P.appendText(" and ");
+      P.appendText(std::to_string(UsedSymbolNames.size() - Front.size()));
+      P.appendText(" more");
+    }
   }
 
   return Output;

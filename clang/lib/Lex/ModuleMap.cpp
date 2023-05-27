@@ -266,7 +266,8 @@ void ModuleMap::resolveHeader(Module *Mod,
           << UmbrellaMod->getFullModuleName();
       else
         // Record this umbrella header.
-        setUmbrellaHeader(Mod, *File, Header.FileName, RelativePathName.str());
+        setUmbrellaHeaderAsWritten(Mod, *File, Header.FileName,
+                                   RelativePathName.str());
     } else {
       Module::Header H = {Header.FileName, std::string(RelativePathName.str()),
                           *File};
@@ -622,7 +623,7 @@ ModuleMap::findOrCreateModuleForHeaderInUmbrellaDir(const FileEntry *File) {
     // Search up the module stack until we find a module with an umbrella
     // directory.
     Module *UmbrellaModule = Result;
-    while (!UmbrellaModule->getUmbrellaDir() && UmbrellaModule->Parent)
+    while (!UmbrellaModule->getEffectiveUmbrellaDir() && UmbrellaModule->Parent)
       UmbrellaModule = UmbrellaModule->Parent;
 
     if (UmbrellaModule->InferSubmodules) {
@@ -683,12 +684,12 @@ ModuleMap::findOrCreateModuleForHeaderInUmbrellaDir(const FileEntry *File) {
 }
 
 ArrayRef<ModuleMap::KnownHeader>
-ModuleMap::findAllModulesForHeader(const FileEntry *File) {
+ModuleMap::findAllModulesForHeader(const FileEntry *File, bool AllowCreation) {
   HeadersMap::iterator Known = findKnownHeader(File);
   if (Known != Headers.end())
     return Known->second;
 
-  if (findOrCreateModuleForHeaderInUmbrellaDir(File))
+  if (AllowCreation && findOrCreateModuleForHeaderInUmbrellaDir(File))
     return Headers.find(File)->second;
 
   return std::nullopt;
@@ -760,7 +761,8 @@ ModuleMap::isHeaderUnavailableInModule(const FileEntry *Header,
       // Search up the module stack until we find a module with an umbrella
       // directory.
       Module *UmbrellaModule = Found;
-      while (!UmbrellaModule->getUmbrellaDir() && UmbrellaModule->Parent)
+      while (!UmbrellaModule->getEffectiveUmbrellaDir() &&
+             UmbrellaModule->Parent)
         UmbrellaModule = UmbrellaModule->Parent;
 
       if (UmbrellaModule->InferSubmodules) {
@@ -888,29 +890,60 @@ ModuleMap::createPrivateModuleFragmentForInterfaceUnit(Module *Parent,
   return Result;
 }
 
+Module *ModuleMap::createModuleUnitWithKind(SourceLocation Loc, StringRef Name,
+                                            Module::ModuleKind Kind) {
+  auto *Result =
+      new Module(Name, Loc, nullptr, /*IsFramework*/ false,
+                 /*IsExplicit*/ false, NumCreatedModules++);
+  Result->Kind = Kind;
+
+  // Reparent any current global module fragment as a submodule of this module.
+  for (auto &Submodule : PendingSubmodules) {
+    Submodule->setParent(Result);
+    Submodule.release(); // now owned by parent
+  }
+  PendingSubmodules.clear();
+  return Result;
+}
+
 Module *ModuleMap::createModuleForInterfaceUnit(SourceLocation Loc,
                                                 StringRef Name) {
   assert(LangOpts.CurrentModule == Name && "module name mismatch");
   assert(!Modules[Name] && "redefining existing module");
 
   auto *Result =
-      new Module(Name, Loc, nullptr, /*IsFramework*/ false,
-                 /*IsExplicit*/ false, NumCreatedModules++);
-  Result->Kind = Module::ModuleInterfaceUnit;
+      createModuleUnitWithKind(Loc, Name, Module::ModuleInterfaceUnit);
   Modules[Name] = SourceModule = Result;
-
-  // Reparent the current global module fragment as a submodule of this module.
-  for (auto &Submodule : PendingSubmodules) {
-    Submodule->setParent(Result);
-    Submodule.release(); // now owned by parent
-  }
-  PendingSubmodules.clear();
 
   // Mark the main source file as being within the newly-created module so that
   // declarations and macros are properly visibility-restricted to it.
   auto *MainFile = SourceMgr.getFileEntryForID(SourceMgr.getMainFileID());
   assert(MainFile && "no input file for module interface");
   Headers[MainFile].push_back(KnownHeader(Result, PrivateHeader));
+
+  return Result;
+}
+
+Module *ModuleMap::createModuleForImplementationUnit(SourceLocation Loc,
+                                                     StringRef Name) {
+  assert(LangOpts.CurrentModule == Name && "module name mismatch");
+  // The interface for this implementation must exist and be loaded.
+  assert(Modules[Name] && Modules[Name]->Kind == Module::ModuleInterfaceUnit &&
+         "creating implementation module without an interface");
+
+  // Create an entry in the modules map to own the implementation unit module.
+  // User module names must not start with a period (so that this cannot clash
+  // with any legal user-defined module name).
+  StringRef IName = ".ImplementationUnit";
+  assert(!Modules[IName] && "multiple implementation units?");
+
+  auto *Result =
+      createModuleUnitWithKind(Loc, Name, Module::ModuleImplementationUnit);
+  Modules[IName] = SourceModule = Result;
+
+  // Check that the main file is present.
+  assert(SourceMgr.getFileEntryForID(SourceMgr.getMainFileID()) &&
+         "no input file for module implementation");
 
   return Result;
 }
@@ -1058,7 +1091,8 @@ Module *ModuleMap::inferFrameworkModule(const DirectoryEntry *FrameworkDir,
   RelativePath = llvm::sys::path::relative_path(RelativePath);
 
   // umbrella header "umbrella-header-name"
-  setUmbrellaHeader(Result, *UmbrellaHeader, ModuleName + ".h", RelativePath);
+  setUmbrellaHeaderAsWritten(Result, *UmbrellaHeader, ModuleName + ".h",
+                             RelativePath);
 
   // export *
   Result->Exports.push_back(Module::ExportDecl(nullptr, true));
@@ -1136,7 +1170,7 @@ Module *ModuleMap::createShadowedModule(StringRef Name, bool IsFramework,
   return Result;
 }
 
-void ModuleMap::setUmbrellaHeader(
+void ModuleMap::setUmbrellaHeaderAsWritten(
     Module *Mod, FileEntryRef UmbrellaHeader, const Twine &NameAsWritten,
     const Twine &PathRelativeToRootModuleDirectory) {
   Headers[UmbrellaHeader].push_back(KnownHeader(Mod, NormalHeader));
@@ -1151,10 +1185,10 @@ void ModuleMap::setUmbrellaHeader(
     Cb->moduleMapAddUmbrellaHeader(&SourceMgr.getFileManager(), UmbrellaHeader);
 }
 
-void ModuleMap::setUmbrellaDir(Module *Mod, const DirectoryEntry *UmbrellaDir,
-                               const Twine &NameAsWritten,
-                               const Twine &PathRelativeToRootModuleDirectory) {
-  Mod->Umbrella = UmbrellaDir;
+void ModuleMap::setUmbrellaDirAsWritten(
+    Module *Mod, DirectoryEntryRef UmbrellaDir, const Twine &NameAsWritten,
+    const Twine &PathRelativeToRootModuleDirectory) {
+  Mod->Umbrella = &UmbrellaDir.getMapEntry();
   Mod->UmbrellaAsWritten = NameAsWritten.str();
   Mod->UmbrellaRelativeToRootModuleDirectory =
       PathRelativeToRootModuleDirectory.str();
@@ -2481,16 +2515,14 @@ void ModuleMapParser::parseUmbrellaDirDecl(SourceLocation UmbrellaLoc) {
   }
 
   // Look for this file.
-  const DirectoryEntry *Dir = nullptr;
+  OptionalDirectoryEntryRef Dir;
   if (llvm::sys::path::is_absolute(DirName)) {
-    if (auto D = SourceMgr.getFileManager().getDirectory(DirName))
-      Dir = *D;
+    Dir = SourceMgr.getFileManager().getOptionalDirectoryRef(DirName);
   } else {
     SmallString<128> PathName;
     PathName = Directory->getName();
     llvm::sys::path::append(PathName, DirName);
-    if (auto D = SourceMgr.getFileManager().getDirectory(PathName))
-      Dir = *D;
+    Dir = SourceMgr.getFileManager().getOptionalDirectoryRef(PathName);
   }
 
   if (!Dir) {
@@ -2524,7 +2556,7 @@ void ModuleMapParser::parseUmbrellaDirDecl(SourceLocation UmbrellaLoc) {
     return;
   }
 
-  if (Module *OwningModule = Map.UmbrellaDirs[Dir]) {
+  if (Module *OwningModule = Map.UmbrellaDirs[*Dir]) {
     Diags.Report(UmbrellaLoc, diag::err_mmap_umbrella_clash)
       << OwningModule->getFullModuleName();
     HadError = true;
@@ -2532,7 +2564,7 @@ void ModuleMapParser::parseUmbrellaDirDecl(SourceLocation UmbrellaLoc) {
   }
 
   // Record this umbrella directory.
-  Map.setUmbrellaDir(ActiveModule, Dir, DirNameAsWritten, DirName);
+  Map.setUmbrellaDirAsWritten(ActiveModule, *Dir, DirNameAsWritten, DirName);
 }
 
 /// Parse a module export declaration.
@@ -2796,7 +2828,7 @@ void ModuleMapParser::parseInferredModuleDecl(bool Framework, bool Explicit) {
   if (ActiveModule) {
     // Inferred modules must have umbrella directories.
     if (!Failed && ActiveModule->IsAvailable &&
-        !ActiveModule->getUmbrellaDir()) {
+        !ActiveModule->getEffectiveUmbrellaDir()) {
       Diags.Report(StarLoc, diag::err_mmap_inferred_no_umbrella);
       Failed = true;
     }

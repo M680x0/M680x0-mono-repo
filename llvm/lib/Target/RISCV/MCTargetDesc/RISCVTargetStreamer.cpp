@@ -34,6 +34,14 @@ void RISCVTargetStreamer::emitDirectiveOptionNoRVC() {}
 void RISCVTargetStreamer::emitDirectiveOptionRelax() {}
 void RISCVTargetStreamer::emitDirectiveOptionNoRelax() {}
 void RISCVTargetStreamer::emitDirectiveVariantCC(MCSymbol &Symbol) {}
+void RISCVTargetStreamer::emitDirectiveOptionArchFullArch(StringRef Value,
+                                                          bool &hasDotOption) {}
+void RISCVTargetStreamer::emitDirectiveOptionArchPlus(StringRef Value,
+                                                      bool &hasDotOption,
+                                                      bool EmitComma) {}
+void RISCVTargetStreamer::emitDirectiveOptionArchMinus(StringRef Value,
+                                                       bool &hasDotOption,
+                                                       bool EmitComma) {}
 void RISCVTargetStreamer::emitAttribute(unsigned Attribute, unsigned Value) {}
 void RISCVTargetStreamer::finishAttributeSection() {}
 void RISCVTargetStreamer::emitTextAttribute(unsigned Attribute,
@@ -46,11 +54,13 @@ void RISCVTargetStreamer::setTargetABI(RISCVABI::ABI ABI) {
   TargetABI = ABI;
 }
 
-void RISCVTargetStreamer::emitTargetAttributes(const MCSubtargetInfo &STI) {
+void RISCVTargetStreamer::emitTargetAttributes(const MCSubtargetInfo &STI,
+                                               bool EmitStackAlign) {
   if (STI.hasFeature(RISCV::FeatureRVE))
     report_fatal_error("Codegen not yet implemented for RVE");
 
-  emitAttribute(RISCVAttrs::STACK_ALIGN, RISCVAttrs::ALIGN_16);
+  if (EmitStackAlign)
+    emitAttribute(RISCVAttrs::STACK_ALIGN, RISCVAttrs::ALIGN_16);
 
   auto ParseResult = RISCVFeatures::parseFeatureBits(
       STI.hasFeature(RISCV::Feature64Bit), STI.getFeatureBits());
@@ -115,5 +125,41 @@ void RISCVTargetAsmStreamer::emitTextAttribute(unsigned Attribute,
 void RISCVTargetAsmStreamer::emitIntTextAttribute(unsigned Attribute,
                                                   unsigned IntValue,
                                                   StringRef StringValue) {}
+
+static void emitDirectiveOptionArchPrefix(formatted_raw_ostream &OS,
+                                          bool &PrefixEmitted) {
+  if (!PrefixEmitted) {
+    OS << "\t .option\tarch,\t";
+    PrefixEmitted = true;
+  }
+}
+
+static void emitCommaOrNextLine(formatted_raw_ostream &OS, bool EmitComma) {
+  if (EmitComma)
+    OS << ", ";
+  else
+    OS << "\n";
+}
+
+void RISCVTargetAsmStreamer::emitDirectiveOptionArchFullArch(
+    StringRef Value, bool &PrefixEmitted) {
+  emitDirectiveOptionArchPrefix(OS, PrefixEmitted);
+  OS << Value;
+  emitCommaOrNextLine(OS, false);
+}
+void RISCVTargetAsmStreamer::emitDirectiveOptionArchPlus(StringRef Value,
+                                                         bool &PrefixEmitted,
+                                                         bool EmitComma) {
+  emitDirectiveOptionArchPrefix(OS, PrefixEmitted);
+  OS << "+" << Value;
+  emitCommaOrNextLine(OS, EmitComma);
+}
+void RISCVTargetAsmStreamer::emitDirectiveOptionArchMinus(StringRef Value,
+                                                          bool &PrefixEmitted,
+                                                          bool EmitComma) {
+  emitDirectiveOptionArchPrefix(OS, PrefixEmitted);
+  OS << "-" << Value;
+  emitCommaOrNextLine(OS, EmitComma);
+}
 
 void RISCVTargetAsmStreamer::finishAttributeSection() {}

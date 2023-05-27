@@ -30,6 +30,15 @@ scheduling models. To that end, we also provide analysis of the results.
 :program:`llvm-exegesis` can also benchmark arbitrary user-provided code
 snippets.
 
+SUPPORTED PLATFORMS
+-------------------
+
+:program:`llvm-exegesis` currently only supports X86 (64-bit only), ARM (AArch64
+only), MIPS, and PowerPC (PowerPC64LE only) on Linux for benchmarking. Not all
+benchmarking functionality is guaranteed to work on every platform.
+:program:`llvm-exegesis` also has a separate analysis mode that is supported
+on every platform on which LLVM is.
+
 SNIPPET ANNOTATIONS
 -------------------
 
@@ -361,6 +370,13 @@ OPTIONS
 
  If set,  llvm-exegesis will dump the generated code to a temporary file to
  enable code inspection. Disabled by default.
+
+.. option:: --use-dummy-perf-counters
+
+ If set, llvm-exegesis will not read any real performance counters and
+ return a dummy value instead. This can be used to ensure a snippet doesn't
+ crash when hardware performance counters are unavailable and for
+ debugging :program:`llvm-exegesis` itself.
 
 EXIT STATUS
 -----------

@@ -251,7 +251,7 @@ public:
   /// OFFLOAD_SUCCESS. The entry is locked for this operation.
   template <typename CBTy> int foreachShadowPointerInfo(CBTy CB) const {
     for (auto &It : States->ShadowPtrInfos)
-      if (CB(It) == OFFLOAD_FAIL)
+      if (CB(const_cast<ShadowPtrInfoTy &>(It)) == OFFLOAD_FAIL)
         return OFFLOAD_FAIL;
     return OFFLOAD_SUCCESS;
   }
@@ -312,7 +312,9 @@ struct TargetPointerResultTy {
     /// Flag indicating that this was the last user of the entry and the ref
     /// count is now 0.
     unsigned IsLast : 1;
-  } Flags = {0, 0, 0, 0};
+    /// If the pointer is contained.
+    unsigned IsContained : 1;
+  } Flags = {0, 0, 0, 0, 0};
 
   TargetPointerResultTy(const TargetPointerResultTy &) = delete;
   TargetPointerResultTy &operator=(const TargetPointerResultTy &TPR) = delete;
@@ -347,6 +349,8 @@ struct TargetPointerResultTy {
   bool isPresent() const { return Flags.IsPresent; }
 
   bool isHostPointer() const { return Flags.IsHostPointer; }
+
+  bool isContained() const { return Flags.IsContained; }
 
   /// The corresponding target pointer
   void *TargetPointer = nullptr;

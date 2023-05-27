@@ -11,6 +11,8 @@
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 #include "llvm/ADT/SmallSet.h"
 
+#include <unordered_map>
+
 using namespace llvm;
 using namespace mlir;
 
@@ -382,7 +384,7 @@ applyPartialOneToNConversion(Operation *op, OneToNTypeConverter &typeConverter,
         assert(castKind == getCastKindName(CastKind::Argument) &&
                "unexpected value of cast kind attribute");
         assert(llvm::all_of(operands,
-                            [&](Value v) { return v.isa<BlockArgument>(); }));
+                            [&](Value v) { return isa<BlockArgument>(v); }));
         maybeResult = typeConverter.materializeArgumentConversion(
             rewriter, castOp->getLoc(), resultTypes.front(),
             castOp.getOperands());

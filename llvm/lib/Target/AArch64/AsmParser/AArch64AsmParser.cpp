@@ -3486,7 +3486,7 @@ AArch64AsmParser::tryParseMatrixRegister(OperandVector &Operands) {
 
   StringRef Name = Tok.getString();
 
-  if (Name.equals_insensitive("za") || Name.startswith_insensitive("za.")) {
+  if (Name.equals_insensitive("za") || Name.starts_with_insensitive("za.")) {
     Lex(); // eat "za[.(b|h|s|d)]"
     unsigned ElementWidth = 0;
     auto DotPosition = Name.find('.');
@@ -3868,7 +3868,7 @@ bool AArch64AsmParser::parseSyspAlias(StringRef Name, SMLoc NameLoc,
   SMLoc S = Tok.getLoc();
 
   if (Mnemonic == "tlbip") {
-    bool HasnXSQualifier = Op.endswith_insensitive("nXS");
+    bool HasnXSQualifier = Op.ends_with_insensitive("nXS");
     if (HasnXSQualifier) {
       Op = Op.drop_back(3);
     }
@@ -4463,7 +4463,7 @@ AArch64AsmParser::tryParseVectorList(OperandVector &Operands,
     if (RegTok.isNot(AsmToken::Identifier) ||
         ParseRes == MatchOperand_ParseFail ||
         (ParseRes == MatchOperand_NoMatch && NoMatchIsError &&
-         !RegTok.getString().startswith_insensitive("za"))) {
+         !RegTok.getString().starts_with_insensitive("za"))) {
       Error(Loc, "vector register expected");
       return MatchOperand_ParseFail;
     }
@@ -5303,6 +5303,14 @@ bool AArch64AsmParser::validateInstruction(MCInst &Inst, SMLoc &IDLoc,
       return Error(Loc[1], "unpredictable LDP instruction, writeback base "
                            "is also a destination");
     [[fallthrough]];
+  }
+  case AArch64::LDR_ZA:
+  case AArch64::STR_ZA: {
+    if (Inst.getOperand(2).isImm() && Inst.getOperand(4).isImm() &&
+        Inst.getOperand(2).getImm() != Inst.getOperand(4).getImm())
+      return Error(Loc[1],
+                   "unpredictable instruction, immediate and offset mismatch.");
+    break;
   }
   case AArch64::LDPDi:
   case AArch64::LDPQi:
@@ -6902,7 +6910,7 @@ bool AArch64AsmParser::parseDirectiveArch(SMLoc L) {
   for (auto Name : RequestedExtensions) {
     bool EnableFeature = true;
 
-    if (Name.startswith_insensitive("no")) {
+    if (Name.starts_with_insensitive("no")) {
       EnableFeature = false;
       Name = Name.substr(2);
     }
@@ -6936,7 +6944,7 @@ bool AArch64AsmParser::parseDirectiveArchExtension(SMLoc L) {
     return true;
 
   bool EnableFeature = true;
-  if (Name.startswith_insensitive("no")) {
+  if (Name.starts_with_insensitive("no")) {
     EnableFeature = false;
     Name = Name.substr(2);
   }
@@ -6998,7 +7006,7 @@ bool AArch64AsmParser::parseDirectiveCPU(SMLoc L) {
 
     bool EnableFeature = true;
 
-    if (Name.startswith_insensitive("no")) {
+    if (Name.starts_with_insensitive("no")) {
       EnableFeature = false;
       Name = Name.substr(2);
     }

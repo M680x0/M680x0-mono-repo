@@ -139,7 +139,8 @@ class ConstraintInfo {
   const DataLayout &DL;
 
 public:
-  ConstraintInfo(const DataLayout &DL) : DL(DL) {}
+  ConstraintInfo(const DataLayout &DL, ArrayRef<Value *> FunctionArgs)
+      : UnsignedCS(FunctionArgs), SignedCS(FunctionArgs), DL(DL) {}
 
   DenseMap<Value *, unsigned> &getValue2Index(bool Signed) {
     return Signed ? SignedCS.getValue2Index() : UnsignedCS.getValue2Index();
@@ -326,6 +327,13 @@ static Decomposition decompose(Value *V,
     if (match(V, m_NSWAdd(m_Value(Op0), m_Value(Op1))))
       return MergeResults(Op0, Op1, IsSigned);
 
+    ConstantInt *CI;
+    if (match(V, m_NSWMul(m_Value(Op0), m_ConstantInt(CI)))) {
+      auto Result = decompose(Op0, Preconditions, IsSigned, DL);
+      Result.mul(CI->getSExtValue());
+      return Result;
+    }
+
     return V;
   }
 
@@ -486,7 +494,9 @@ ConstraintInfo::getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
   }
 
   for (const auto &KV : VariablesB) {
-    R[GetOrAddIndex(KV.Variable)] -= KV.Coefficient;
+    if (SubOverflow(R[GetOrAddIndex(KV.Variable)], KV.Coefficient,
+                    R[GetOrAddIndex(KV.Variable)]))
+      return {};
     auto I =
         KnownNonNegativeVariables.insert({KV.Variable, KV.IsKnownNonNegative});
     I.first->second &= KV.IsKnownNonNegative;
@@ -581,11 +591,15 @@ void ConstraintInfo::transferToOtherSystem(
     if (doesHold(CmpInst::ICMP_SGE, A, ConstantInt::get(B->getType(), 0)))
       addFact(CmpInst::ICMP_ULT, A, B, NumIn, NumOut, DFSInStack);
     break;
-  case CmpInst::ICMP_SGT:
+  case CmpInst::ICMP_SGT: {
     if (doesHold(CmpInst::ICMP_SGE, B, ConstantInt::get(B->getType(), -1)))
       addFact(CmpInst::ICMP_UGE, A, ConstantInt::get(B->getType(), 0), NumIn,
               NumOut, DFSInStack);
+    if (doesHold(CmpInst::ICMP_SGE, B, ConstantInt::get(B->getType(), 0)))
+      addFact(CmpInst::ICMP_UGT, A, B, NumIn, NumOut, DFSInStack);
+
     break;
+  }
   case CmpInst::ICMP_SGE:
     if (doesHold(CmpInst::ICMP_SGE, B, ConstantInt::get(B->getType(), 0))) {
       addFact(CmpInst::ICMP_UGE, A, B, NumIn, NumOut, DFSInStack);
@@ -954,7 +968,8 @@ static bool checkAndReplaceCondition(
     NumCondsRemoved++;
     Changed = true;
   }
-  if (CSToUse.isConditionImplied(ConstraintSystem::negate(R.Coefficients))) {
+  auto Negated = ConstraintSystem::negate(R.Coefficients);
+  if (!Negated.empty() && CSToUse.isConditionImplied(Negated)) {
     if (!DebugCounter::shouldExecute(EliminatedCounter))
       return false;
 
@@ -1087,8 +1102,10 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT,
                                  OptimizationRemarkEmitter &ORE) {
   bool Changed = false;
   DT.updateDFSNumbers();
-
-  ConstraintInfo Info(F.getParent()->getDataLayout());
+  SmallVector<Value *> FunctionArgs;
+  for (Value &Arg : F.args())
+    FunctionArgs.push_back(&Arg);
+  ConstraintInfo Info(F.getParent()->getDataLayout(), FunctionArgs);
   State S(DT);
   std::unique_ptr<Module> ReproducerModule(
       DumpReproducers ? new Module(F.getName(), F.getContext()) : nullptr);
